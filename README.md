@@ -10,3 +10,7 @@ O RestManager é uma plataforma web de gestão de restaurante que substitui as c
 - Lucas Ormenese Altieri — @la-eds’s
 - Nathalia Lopes Da Silva Lima — @NathyLopes
 - Vitória Aparecida Brigo Mattos — @Vitoria-Mattos
+
+## Link para o respositorio do frontend
+
+https://github.com/Bia-z/pi4-0102-08-frontend/tree/main/docs/fluxos
