@@ -8,7 +8,16 @@
 | **Atende** | E2, E3, E7, E9 |
 | **Como chamar** | Tabela `tb_mesa`, chave `id` |
 
-*Entrada e saída: os campos gravados são os mesmos campos lidos.*
+### Entrada
+
+| Campo | Tipo | Obrigatório | Exemplo |
+| :--- | :--- | :--- | :--- |
+| id | inteiro | sim | 5 |
+| numero | inteiro | sim | 10 |
+| capacidade | inteiro | sim | 4 |
+| status | um de: disponivel, ocupada, reservada | sim | ocupada |
+
+### Saída
 
 | Campo | Tipo | Obrigatório | Exemplo |
 | :--- | :--- | :--- | :--- |
