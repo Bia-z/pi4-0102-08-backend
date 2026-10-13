@@ -15,7 +15,7 @@
 | nome | texto | sim | Carlos Mendes |
 | email | texto | sim | carlos@restmanager.com |
 | senha | texto | sim | senhaSegura123 |
-| perfil | um de: admin, garçom, cozinha, caixa | sim | garçom |
+| perfil | um de: admin, garcom, cozinha, caixa | sim | garçom |
 
 ### Saída
 
