@@ -20,7 +20,7 @@
 | :--- | :--- | :--- | :--- |
 | mesa_id | inteiro | sim | 5 |
 | numero_mesa | inteiro | sim | 10 |
-| mesa_status | um de: disponivel, ocupada, reservada | sim | ocupada |
+| mesa_status | um de: disponivel, ocupada, reservada, em_pagamento | sim | ocupada |
 | pedido_id | inteiro | sim | 101 |
 | data_abertura | data e hora | sim | 2026-09-14T19:42:00 |
 | itens_consumidos | lista de objeto ItemExtrato | sim | [ { "produto_id": 10, "nome_produto": "Picanha Grelhada", "quantidade": 2, "preco_unitario": 89.00, "subtotal": 178.00 } ] |
