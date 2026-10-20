@@ -29,4 +29,5 @@
 | Quando | O que volta |
 | :--- | :--- |
 | A mesa de destino já se encontra ocupada | Erro MESA_DESTINO_OCUPADA |
-| O pedido a ser transferido não se encontra em aberto | Erro PEDIDO_NAO_A_ABERTO |
+| O pedido a ser transferido não se encontra em aberto | Erro PEDIDO_NAO_EM_ABERTO |
+| A mesa de origem ou de destino está em pagamento | Erro MESA_EM_PAGAMENTO |
