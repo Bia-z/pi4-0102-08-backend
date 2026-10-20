@@ -40,3 +40,4 @@
 | :--- | :--- |
 | A mesa selecionada não existe | Erro MESA_NAO_ENCONTRADA |
 | Um dos produtos da lista não existe | Erro PRODUTO_NAO_ENCONTRADO |
+| A mesa está em pagamento no caixa | Erro MESA_EM_PAGAMENTO |
