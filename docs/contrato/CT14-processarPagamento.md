@@ -38,3 +38,4 @@
 | :--- | :--- |
 | A soma dos pagamentos é menor que o valor total do pedido | Erro VALOR_PAGAMENTO_INSUFICIENTE |
 | O pedido já consta como pago | Erro PEDIDO_JA_PAGO |
+| A mesa não está em pagamento (o caixa não chamou CT19 antes) | Erro MESA_NAO_EM_PAGAMENTO |
