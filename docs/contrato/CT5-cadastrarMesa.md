@@ -22,7 +22,7 @@
 | id | inteiro | sim | 5 |
 | numero | inteiro | sim | 10 |
 | capacidade | inteiro | sim | 4 |
-| status | um de: disponivel, ocupada, reservada | sim | disponivel |
+| status | um de: disponivel, ocupada, reservada, em_pagamento | sim | disponivel |
 
 ### Erros
 
