@@ -24,7 +24,7 @@ não tem
 | :--- | :--- | :--- | :--- |
 | mesaId | inteiro | sim | 5 |
 | numero | inteiro | sim | 10 |
-| status | um de: disponivel, ocupada, reservada | sim | ocupada |
+| status | um de: disponivel, ocupada, reservada, em_pagamento | sim | ocupada |
 | valorConsumido | decimal | sim | 143.00 |
 
 ### Erros
