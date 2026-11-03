@@ -1,0 +1,27 @@
+name: CI
+
+# Roda a cada push, em qualquer branch
+on:
+  push:
+
+jobs:
+  build-and-test:
+    # Máquina virtual do GitHub onde tudo roda
+    runs-on: ubuntu-latest
+
+    steps:
+      # Baixa o código do repositório para a máquina
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Instala o Java 17 e guarda as dependências do Maven em cache
+      - name: Configura o Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      # Compila o projeto e roda os testes JUnit
+      - name: Compila e roda os testes
+        run: mvn -B verify
