@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    # Banco no seu computador (fora do Docker)
+    url: jdbc:postgresql://localhost:5432/restmanager
+    username: restmanager
+    password: troque_essa_senha
+  jpa:
+    hibernate:
+      # O banco é criado pelo script SQL do H01.2, então o Hibernate não mexe nas tabelas
+      ddl-auto: none
