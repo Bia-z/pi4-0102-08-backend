@@ -1,10 +1,14 @@
 spring:
   datasource:
-    # Banco no seu computador (fora do Docker)
     url: jdbc:postgresql://localhost:5432/restmanager
     username: restmanager
-    password: troque_essa_senha
+    password: restmanager
   jpa:
     hibernate:
-      # O banco é criado pelo script SQL do H01.2, então o Hibernate não mexe nas tabelas
       ddl-auto: none
+
+app:
+  jwt:
+    # No Docker vem do .env; o valor depois dos ":" é só o padrão para rodar no IntelliJ
+    secret: ${JWT_SECRET:segredo-de-desenvolvimento-com-mais-de-32-caracteres}
+    expiracao-minutos: 480

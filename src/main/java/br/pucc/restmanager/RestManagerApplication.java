@@ -1,4 +1,4 @@
-package com.restmanager;
+package br.pucc.restmanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.restmanager;
+package br.pucc.restmanager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
