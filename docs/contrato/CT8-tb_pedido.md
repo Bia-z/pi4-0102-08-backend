@@ -17,7 +17,7 @@
 | id | inteiro | sim | 101 |
 | mesa_id | inteiro | sim | 5 |
 | garcom_id | inteiro | sim | 2 |
-| status | um de: aguardando, em_preparo, pronto, pago, cancelado | sim | aguardando |
+| status | um de: AGUARDANDO, EM_PREPARO, PRONTO, PAGO, CANCELADO | sim | AGUARDANDO |
 | valor_total | decimal | sim | 56.00 |
 | data_criacao | data e hora | sim | 2026-10-13T14:32:00 |
 
@@ -31,6 +31,8 @@
 | quantidade | inteiro | sim | 2 |
 | preco_unitario | decimal | sim | 28.00 |
 | observacao | texto | não | Sem cebola |
+| status | um de: AGUARDANDO, EM_PREPARO, PRONTO, CANCELADO | sim | AGUARDANDO |
+| atualizado_em | data e hora | sim | 2026-10-13T14:35:00 |
 
 ### Saída
 
@@ -41,7 +43,7 @@
 | id | inteiro | sim | 101 |
 | mesa_id | inteiro | sim | 5 |
 | garcom_id | inteiro | sim | 2 |
-| status | um de: aguardando, em_preparo, pronto, pago, cancelado | sim | aguardando |
+| status | um de: AGUARDANDO, EM_PREPARO, PRONTO, PAGO, CANCELADO | sim | AGUARDANDO |
 | valor_total | decimal | sim | 56.00 |
 | data_criacao | data e hora | sim | 2026-10-13T14:32:00 |
 
@@ -55,9 +57,14 @@
 | quantidade | inteiro | sim | 2 |
 | preco_unitario | decimal | sim | 28.00 |
 | observacao | texto | não | Sem cebola |
+| status | um de: AGUARDANDO, EM_PREPARO, PRONTO, CANCELADO | sim | AGUARDANDO |
+| atualizado_em | data e hora | sim | 2026-10-13T14:35:00 |
 
 ### Erros
 
 | Quando | O que volta |
 | :--- | :--- |
 | O `mesa_id` ou `garcom_id` não existem nas tabelas pai | O banco recusa a gravação (Foreign Key Violation) |
+| Quantidade menor ou igual a zero, ou status fora da lista | O banco recusa a gravação (Check Constraint Violation) |
+
+> **Status em dois níveis (proposta, a confirmar com Heitor e Vitória):** o andamento na cozinha (RF09, E5) é controlado **por item** em `tb_item_pedido.status`. O `tb_pedido.status` resume o pedido e é o único que assume `PAGO` e `CANCELADO`.
