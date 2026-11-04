@@ -5,7 +5,9 @@ spring:
     password: restmanager
   jpa:
     hibernate:
-      ddl-auto: none
+      # O esquema é criado por docker/db/init/01-schema.sql.
+      # "validate" faz o Spring conferir, ao subir, se as entidades batem com as tabelas.
+      ddl-auto: validate
 
 app:
   jwt:
