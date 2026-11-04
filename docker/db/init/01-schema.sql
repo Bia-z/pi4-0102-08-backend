@@ -31,6 +31,7 @@ CREATE TABLE tb_usuario (
     ativo   BOOLEAN      NOT NULL DEFAULT TRUE,
     CONSTRAINT uk_usuario_codigo UNIQUE (codigo),
     CONSTRAINT uk_usuario_email  UNIQUE (email),
+    CONSTRAINT uk_usuario_cpf UNIQUE (cpf),
     CONSTRAINT ck_usuario_perfil CHECK (perfil IN ('ADMIN', 'GARCOM', 'COZINHA', 'CAIXA'))
 );
 

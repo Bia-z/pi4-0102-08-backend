@@ -6,6 +6,7 @@ import java.util.Locale;
 public record UsuarioResponse(
         Long id,
         String nome,
+        String email,
         String cpf,
         String telefone,
         String codigo,
@@ -16,6 +17,7 @@ public record UsuarioResponse(
         return new UsuarioResponse(
                 usuario.getId(),
                 usuario.getNome(),
+                usuario.getEmail(),
                 usuario.getCpf(),
                 usuario.getTelefone(),
                 usuario.getCodigo(),

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @WebMvcTest(controllers = SecurityAuthorizationTest.TestEndpoint.class)
-@Import({SecurityConfig.class, JwtService.class})
+@Import({SecurityConfig.class, JwtService.class, SecurityAuthorizationTest.TestEndpoint.class})
 @TestPropertySource(properties = {
         "app.jwt.secret=segredo-de-teste-com-mais-de-32-caracteres-ok",
         "app.jwt.expiracao-minutos=60"
@@ -81,7 +81,7 @@ class SecurityAuthorizationTest {
     }
 
     @RestController
-    static class TestEndpoint {
+    public static class TestEndpoint {
         @PostMapping("/api/pedidos")
         String criarPedido() {
             return "ok";

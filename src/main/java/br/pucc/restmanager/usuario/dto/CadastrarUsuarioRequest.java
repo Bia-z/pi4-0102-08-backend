@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record CadastrarUsuarioRequest(
         @NotBlank @Size(max = 120) String nome,
+        @Size(max = 160) String email,
         @NotBlank @Size(max = 14) String cpf,
         @NotBlank @Size(max = 20) String telefone,
         @Size(max = 20) String codigo,

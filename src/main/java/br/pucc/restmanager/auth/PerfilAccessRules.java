@@ -40,8 +40,20 @@ public class PerfilAccessRules implements AuthorizationManager<RequestAuthorizat
         }
         return new AuthorizationDecision(perfilPermitido(
                 context.getRequest().getMethod(),
-                context.getRequest().getServletPath(),
+                caminhoDaRequisicao(context.getRequest()),
                 perfilDa(current)));
+    }
+
+    private String caminhoDaRequisicao(jakarta.servlet.http.HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        if (servletPath != null && !servletPath.isEmpty()) {
+            return servletPath;
+        }
+        String requestUri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        return contextPath != null && !contextPath.isEmpty()
+                ? requestUri.substring(contextPath.length())
+                : requestUri;
     }
 
     public boolean perfilPermitido(String metodo, String caminho, Perfil perfil) {

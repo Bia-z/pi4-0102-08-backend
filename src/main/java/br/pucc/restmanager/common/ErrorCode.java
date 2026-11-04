@@ -9,7 +9,12 @@ public enum ErrorCode {
     USUARIO_INATIVO(HttpStatus.FORBIDDEN),
     ACESSO_NEGADO(HttpStatus.FORBIDDEN),
     CODIGO_DUPLICADO(HttpStatus.CONFLICT),
-    PERFIL_INVALIDO(HttpStatus.BAD_REQUEST);
+    PERFIL_INVALIDO(HttpStatus.BAD_REQUEST),
+    CPF_INVALIDO(HttpStatus.BAD_REQUEST),
+    CPF_DUPLICADO(HttpStatus.CONFLICT),
+    TELEFONE_INVALIDO(HttpStatus.BAD_REQUEST),
+    EMAIL_INVALIDO(HttpStatus.BAD_REQUEST),
+    EMAIL_DUPLICADO(HttpStatus.CONFLICT);
 
     private final HttpStatus status;
 
