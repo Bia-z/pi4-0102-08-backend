@@ -65,6 +65,8 @@ docker compose down -v; docker compose up -d db               # RECRIAR o banco 
 
 > Mudou o `01-schema.sql` ou o `02-seed.sql`? Rode `docker compose down -v` antes de subir. Sem isso, os scripts não executam de novo.
 
+> O cadastro CT1 adiciona `cpf` e `telefone` e torna `email` opcional em `tb_usuario`. Para um banco já existente, aplique uma migração equivalente antes de iniciar o backend: `ALTER TABLE tb_usuario ALTER COLUMN email DROP NOT NULL; ALTER TABLE tb_usuario ADD COLUMN cpf VARCHAR(14), ADD COLUMN telefone VARCHAR(20);`. Não é necessário apagar o volume.
+
 ## Convenções
 
 - Tabelas `tb_*` e colunas em `snake_case`; IDs `BIGINT` identity (`Long` + `GenerationType.IDENTITY`).

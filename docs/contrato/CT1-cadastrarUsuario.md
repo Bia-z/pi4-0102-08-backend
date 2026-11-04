@@ -13,17 +13,23 @@
 | Campo | Tipo | Obrigatório | Exemplo |
 | :--- | :--- | :--- | :--- |
 | nome | texto | sim | Carlos Mendes |
-| email | texto | sim | carlos@restmanager.com |
-| senha | texto | sim | senhaSegura123 |
+| cpf | texto | sim | 123.456.789-00 |
+| telefone | texto | sim | 11999999999 |
+| codigo | texto | não | FUNC001 |
 | perfil | um de: admin, garcom, cozinha, caixa | sim | garcom |
+| senha | texto | sim | senhaSegura123 |
+
+Se `codigo` não for enviado, o backend gera um código de funcionário único.
 
 ### Saída
 
 | Campo | Tipo | Obrigatório | Exemplo |
 | :--- | :--- | :--- | :--- |
 | id | inteiro | sim | 1 |
+| codigo | texto | sim | FUNC001 |
 | nome | texto | sim | Carlos Mendes |
-| email | texto | sim | carlos@restmanager.com |
+| cpf | texto | sim | 123.456.789-00 |
+| telefone | texto | sim | 11999999999 |
 | perfil | um de: admin, garcom, cozinha, caixa | sim | garcom |
 | ativo | booleano | sim | true |
 
@@ -31,6 +37,8 @@
 
 | Quando | O que volta |
 | :--- | :--- |
-| O e-mail já está cadastrado no sistema | Erro EMAIL_DUPLICADO |
+| O código informado já está cadastrado no sistema | Erro CODIGO_DUPLICADO |
 | O perfil informado não é válido | Erro PERFIL_INVALIDO |
 | O usuário que chama a API não é Administrador | Erro ACESSO_NEGADO |
+
+A senha é armazenada como hash BCrypt e não é devolvida na resposta.

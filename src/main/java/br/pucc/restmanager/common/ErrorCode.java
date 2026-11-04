@@ -7,7 +7,9 @@ public enum ErrorCode {
     TOKEN_AUSENTE(HttpStatus.UNAUTHORIZED),
     TOKEN_INVALIDO(HttpStatus.UNAUTHORIZED),
     USUARIO_INATIVO(HttpStatus.FORBIDDEN),
-    ACESSO_NEGADO(HttpStatus.FORBIDDEN);
+    ACESSO_NEGADO(HttpStatus.FORBIDDEN),
+    CODIGO_DUPLICADO(HttpStatus.CONFLICT),
+    PERFIL_INVALIDO(HttpStatus.BAD_REQUEST);
 
     private final HttpStatus status;
 

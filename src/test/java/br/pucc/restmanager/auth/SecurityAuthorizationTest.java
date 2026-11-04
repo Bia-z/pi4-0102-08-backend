@@ -61,6 +61,19 @@ class SecurityAuthorizationTest {
                 .andExpect(content().string("ok"));
     }
 
+    @Test
+    void somenteAdministradorPodeCadastrarUsuario() throws Exception {
+        mockMvc.perform(post("/api/usuarios")
+                        .header("Authorization", bearer(Perfil.GARCOM)))
+                .andExpect(status().isForbidden())
+                .andExpect(content().json("{\"erro\":\"ACESSO_NEGADO\"}"));
+
+        mockMvc.perform(post("/api/usuarios")
+                        .header("Authorization", bearer(Perfil.ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("cadastrado"));
+    }
+
     private String bearer(Perfil perfil) {
         Usuario usuario = new Usuario("T001", "Teste", "teste@restmanager.com",
                 "hash", perfil, true);
@@ -72,6 +85,11 @@ class SecurityAuthorizationTest {
         @PostMapping("/api/pedidos")
         String criarPedido() {
             return "ok";
+        }
+
+        @PostMapping("/api/usuarios")
+        String cadastrarUsuario() {
+            return "cadastrado";
         }
     }
 }

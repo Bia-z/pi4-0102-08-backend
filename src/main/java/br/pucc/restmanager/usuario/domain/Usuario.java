@@ -13,6 +13,10 @@ public class Usuario {
     private String codigo;
     private String nome;
     private String email;
+    @Column(length = 14)
+    private String cpf;
+    @Column(length = 20)
+    private String telefone;
     private String senha; // hash BCrypt, nunca a senha pura
 
     @Enumerated(EnumType.STRING)
@@ -25,9 +29,16 @@ public class Usuario {
     }
 
     public Usuario(String codigo, String nome, String email, String senha, Perfil perfil, boolean ativo) {
+        this(codigo, nome, email, null, null, senha, perfil, ativo);
+    }
+
+    public Usuario(String codigo, String nome, String email, String cpf, String telefone,
+                   String senha, Perfil perfil, boolean ativo) {
         this.codigo = codigo;
         this.nome = nome;
         this.email = email;
+        this.cpf = cpf;
+        this.telefone = telefone;
         this.senha = senha;
         this.perfil = perfil;
         this.ativo = ativo;
@@ -37,6 +48,8 @@ public class Usuario {
     public String getCodigo() { return codigo; }
     public String getNome() { return nome; }
     public String getEmail() { return email; }
+    public String getCpf() { return cpf; }
+    public String getTelefone() { return telefone; }
     public String getSenha() { return senha; }
     public Perfil getPerfil() { return perfil; }
     public boolean isAtivo() { return ativo; }

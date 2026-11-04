@@ -27,4 +27,10 @@ class PerfilAccessRulesTest {
         assertFalse(rules.perfilPermitido("GET", "/api/pedidos", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/rota-nao-cadastrada", Perfil.ADMIN));
     }
+
+    @Test
+    void cadastrarUsuarioEExclusivoDoAdministrador() {
+        assertTrue(rules.perfilPermitido("POST", "/api/usuarios", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("POST", "/api/usuarios", Perfil.GARCOM));
+    }
 }
