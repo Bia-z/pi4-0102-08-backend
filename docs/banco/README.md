@@ -65,7 +65,19 @@ docker compose down -v; docker compose up -d db               # RECRIAR o banco 
 
 > Mudou o `01-schema.sql` ou o `02-seed.sql`? Rode `docker compose down -v` antes de subir. Sem isso, os scripts não executam de novo.
 
-> O cadastro CT1 adiciona `cpf` e `telefone`, torna `email` opcional e exige CPF único em `tb_usuario`. Para um banco já existente, aplique uma migração equivalente antes de iniciar o backend: `ALTER TABLE tb_usuario ALTER COLUMN email DROP NOT NULL; ALTER TABLE tb_usuario ADD COLUMN cpf VARCHAR(14), ADD COLUMN telefone VARCHAR(20); ALTER TABLE tb_usuario ADD CONSTRAINT uk_usuario_cpf UNIQUE (cpf);`. A migração pode falhar se já existirem CPFs repetidos; corrija os registros duplicados antes de criar a restrição. Não é necessário apagar o volume.
+## Migrações (banco já existente)
+
+Mudanças no esquema depois da criação ficam em **`docker/db/migracoes/`**, numeradas (`001-...sql`, `002-...sql`). Quem já tem o banco criado aplica os scripts novos sem apagar o volume:
+
+```powershell
+Get-ChildItem docker/db/migracoes/*.sql | Sort-Object Name | ForEach-Object { Get-Content $_ | docker compose exec -T db psql -U restmanager -d restmanager }
+```
+
+Os scripts são idempotentes: rodar de novo não causa erro. Veja o histórico e como criar uma migração nova em [`docker/db/migracoes/README.md`](../../docker/db/migracoes/README.md).
+
+| Nº | O que muda |
+| :--- | :--- |
+| 001 | `tb_usuario`: e-mail opcional, `cpf` (único) e `telefone` (cadastro CT1) |
 
 ## Convenções
 
