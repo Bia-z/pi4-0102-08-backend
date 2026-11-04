@@ -14,3 +14,14 @@ O RestManager é uma plataforma web de gestão de restaurante que substitui as c
 ## Link para o respositorio do frontend
 
 https://github.com/Bia-z/pi4-0102-08-frontend/tree/main/docs/fluxos
+
+## Segurança da API
+
+O login `POST /api/auth/login` é público. As demais operações exigem um JWT
+válido no cabeçalho `Authorization: Bearer <token>`. As permissões por método,
+rota e perfil ficam declaradas em um único lugar, `PerfilAccessRules`; rotas sem
+regra são recusadas.
+
+Sem token, a API responde `401` com `{"erro":"TOKEN_AUSENTE"}`; token inválido
+responde `401` com `{"erro":"TOKEN_INVALIDO"}`; perfil sem permissão responde
+`403` com `{"erro":"ACESSO_NEGADO"}`.
