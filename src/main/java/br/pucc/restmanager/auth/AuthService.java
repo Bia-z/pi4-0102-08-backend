@@ -37,6 +37,6 @@ public class AuthService {
         }
 
         String token = jwt.gerarToken(usuario);
-        return new LoginResponse(token, "Bearer", usuario.getPerfil().name().toLowerCase());
+        return new LoginResponse(token, "Bearer", usuario.getPerfil().name().toLowerCase(Locale.ROOT));
     }
 }

@@ -10,10 +10,10 @@
 
 ### Entrada
 
-| Campo | Tipo | Obrigatório | Exemplo |
-| :--- | :--- | :--- | :--- |
-| email | texto | sim | garcom@restmanager.com |
-| senha | texto | sim | 123456 |
+| Campo  | Tipo | Obrigatório | Exemplo |
+|:-------| :--- | :--- |:--------|
+| codigo | texto | sim | 12345   |
+| senha  | texto | sim | 123456  |
 
 ### Saída
 
@@ -25,7 +25,7 @@
 
 ### Erros
 
-| Quando | O que volta |
-| :--- | :--- |
-| E-mail ou senha incorretos | Erro CREDENCIAIS_INVALIDAS |
+| Quando                            | O que volta |
+|:----------------------------------| :--- |
+| Codigo ou senha incorretos        | Erro CREDENCIAIS_INVALIDAS |
 | O usuário cadastrado está inativo | Erro USUARIO_INATIVO |

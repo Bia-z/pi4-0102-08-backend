@@ -13,7 +13,7 @@
     </parent>
 
     <!-- Identidade do seu projeto -->
-    <groupId>com.restmanager</groupId>
+    <groupId>br.pucc.restmanager</groupId>
     <artifactId>restmanager-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>restmanager-backend</name>

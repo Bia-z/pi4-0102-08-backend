@@ -27,7 +27,7 @@ public class JwtService {
         Date agora = new Date();
         return Jwts.builder()
                 .subject(usuario.getCodigo())
-                .claim("perfil", usuario.getPerfil().name().toLowerCase())
+                .claim("perfil", usuario.getPerfil().name().toLowerCase(Locale.ROOT))
                 .issuedAt(agora)
                 .expiration(new Date(agora.getTime() + expiracaoMs))
                 .signWith(chave)
