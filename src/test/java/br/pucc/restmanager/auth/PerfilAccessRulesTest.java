@@ -14,12 +14,15 @@ class PerfilAccessRulesTest {
     void perfilPermitidoAcessaOperacaoCorrespondente() {
         assertTrue(rules.perfilPermitido("POST", "/api/pedidos", Perfil.GARCOM));
         assertTrue(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/iniciar", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/processar", Perfil.CAIXA));
     }
 
     @Test
     void perfilNaoPermitidoERecusado() {
         assertFalse(rules.perfilPermitido("POST", "/api/pedidos", Perfil.COZINHA));
         assertFalse(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/iniciar", Perfil.GARCOM));
+        assertFalse(rules.perfilPermitido(
+                "POST", "/api/mesas/42/pagamento/processar", Perfil.GARCOM));
     }
 
     @Test

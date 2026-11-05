@@ -28,7 +28,8 @@ public class PerfilAccessRules implements AuthorizationManager<RequestAuthorizat
                     Perfil.ADMIN, Perfil.GARCOM, Perfil.CAIXA),
             operation("POST", "/api/pedidos/*/transferir-mesa", Perfil.ADMIN, Perfil.GARCOM),
             operation("POST", "/api/mesas/*/pagamento/iniciar", Perfil.ADMIN, Perfil.CAIXA),
-            operation("POST", "/api/mesas/*/pagamento/cancelar", Perfil.ADMIN, Perfil.CAIXA));
+            operation("POST", "/api/mesas/*/pagamento/cancelar", Perfil.ADMIN, Perfil.CAIXA),
+            operation("POST", "/api/mesas/*/pagamento/processar", Perfil.ADMIN, Perfil.CAIXA));
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 

@@ -10,6 +10,8 @@ spring:
       ddl-auto: validate
 
 app:
+  websocket:
+    allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:3000}
   jwt:
     # No Docker vem do .env; o valor depois dos ":" é só o padrão para rodar no IntelliJ
     secret: ${JWT_SECRET:segredo-de-desenvolvimento-com-mais-de-32-caracteres}
