@@ -33,4 +33,12 @@ class PerfilAccessRulesTest {
         assertTrue(rules.perfilPermitido("POST", "/api/usuarios", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/usuarios", Perfil.GARCOM));
     }
+
+    @Test
+    void cadastrarProdutoEExclusivoDoAdministradorECardapioAcessivelAEquipe() {
+        assertTrue(rules.perfilPermitido("POST", "/api/produtos", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("POST", "/api/produtos", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido("GET", "/api/cardapio", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido("GET", "/api/cardapio", Perfil.CAIXA));
+    }
 }

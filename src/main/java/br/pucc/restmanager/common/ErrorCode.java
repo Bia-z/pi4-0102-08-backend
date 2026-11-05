@@ -14,7 +14,11 @@ public enum ErrorCode {
     CPF_DUPLICADO(HttpStatus.CONFLICT),
     TELEFONE_INVALIDO(HttpStatus.BAD_REQUEST),
     EMAIL_INVALIDO(HttpStatus.BAD_REQUEST),
-    EMAIL_DUPLICADO(HttpStatus.CONFLICT);
+    EMAIL_DUPLICADO(HttpStatus.CONFLICT),
+    CATEGORIA_NAO_ENCONTRADA(HttpStatus.NOT_FOUND),
+    PRECO_INVALIDO(HttpStatus.BAD_REQUEST),
+    PRODUTO_DUPLICADO(HttpStatus.CONFLICT),
+    INGREDIENTE_NAO_ENCONTRADO(HttpStatus.NOT_FOUND);
 
     private final HttpStatus status;
 
