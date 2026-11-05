@@ -18,7 +18,9 @@ public enum ErrorCode {
     CATEGORIA_NAO_ENCONTRADA(HttpStatus.NOT_FOUND),
     PRECO_INVALIDO(HttpStatus.BAD_REQUEST),
     PRODUTO_DUPLICADO(HttpStatus.CONFLICT),
-    INGREDIENTE_NAO_ENCONTRADO(HttpStatus.NOT_FOUND);
+    INGREDIENTE_NAO_ENCONTRADO(HttpStatus.NOT_FOUND),
+    MESA_DUPLICADA(HttpStatus.CONFLICT),
+    CAPACIDADE_INVALIDA(HttpStatus.BAD_REQUEST);
 
     private final HttpStatus status;
 

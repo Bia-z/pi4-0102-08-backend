@@ -16,6 +16,7 @@ import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.UsuarioService;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
+import br.pucc.restmanager.auth.dto.LoginRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;

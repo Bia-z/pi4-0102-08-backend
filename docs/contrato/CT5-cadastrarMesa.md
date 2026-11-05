@@ -8,6 +8,8 @@
 | **Atende** | E2 |
 | **Como chamar** | POST `/api/mesas` |
 
+Operação permitida somente ao perfil `ADMIN`. A mesa é criada com status `disponivel`.
+
 ### Entrada
 
 | Campo | Tipo | Obrigatório | Exemplo |
@@ -29,3 +31,4 @@
 | Quando | O que volta |
 | :--- | :--- |
 | Já existe uma mesa cadastrada com esse número | Erro MESA_DUPLICADA |
+| A capacidade é menor que 1 | Erro CAPACIDADE_INVALIDA |

@@ -41,4 +41,10 @@ class PerfilAccessRulesTest {
         assertTrue(rules.perfilPermitido("GET", "/api/cardapio", Perfil.GARCOM));
         assertTrue(rules.perfilPermitido("GET", "/api/cardapio", Perfil.CAIXA));
     }
+
+    @Test
+    void cadastrarMesaEExclusivoDoAdministrador() {
+        assertTrue(rules.perfilPermitido("POST", "/api/mesas", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("POST", "/api/mesas", Perfil.GARCOM));
+    }
 }
