@@ -99,4 +99,25 @@ class MesaServiceTest {
 
         assertEquals(List.of(), service.obterMapaMesas().mesas());
     }
+
+    @Test
+    void mesaCadastradaFicaDisponivelNoMapa() {
+        when(mesas.existsByNumero(11)).thenReturn(false);
+        when(mesas.save(any(Mesa.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        MesaMapaProjection mesaNoMapa = mock(MesaMapaProjection.class);
+        when(mesaNoMapa.getMesaId()).thenReturn(1L);
+        when(mesaNoMapa.getNumero()).thenReturn(11);
+        when(mesaNoMapa.getStatus()).thenReturn("DISPONIVEL");
+        when(mesaNoMapa.getValorConsumido()).thenReturn(BigDecimal.ZERO);
+        when(mesas.obterMapaMesas()).thenReturn(List.of(mesaNoMapa));
+
+        MesaResponse cadastrada = service.cadastrar(new CadastrarMesaRequest(11, 4));
+        MapaMesasResponse mapa = service.obterMapaMesas();
+
+        assertEquals("disponivel", cadastrada.status());
+        assertEquals(1, mapa.mesas().size());
+        assertEquals(11, mapa.mesas().get(0).numero());
+        assertEquals("disponivel", mapa.mesas().get(0).status());
+        assertEquals(BigDecimal.ZERO, mapa.mesas().get(0).valorConsumido());
+    }
 }

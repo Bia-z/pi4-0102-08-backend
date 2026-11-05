@@ -18,6 +18,7 @@ import br.pucc.restmanager.cardapio.dto.ProdutoResponse;
 import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -174,6 +175,32 @@ class ProdutoServiceTest {
         assertEquals(List.of("Bruschetta"),
                 response.get(0).produtos().stream().map(ProdutoResponse::nome).toList());
         verify(produtos).findByCategoriaIdAndAtivoTrueOrderByNomeAsc(1L);
+    }
+
+    @Test
+    void produtoAtivoCadastradoFicaDisponivelNoCardapio() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente ingrediente = new Ingrediente("Tomate", true);
+        List<Produto> salvos = new ArrayList<>();
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(1L))).thenReturn(List.of(ingrediente));
+        when(produtos.save(any(Produto.class))).thenAnswer(invocation -> {
+            Produto produto = invocation.getArgument(0);
+            salvos.add(produto);
+            return produto;
+        });
+        when(categorias.findByAtivoTrueOrderByOrdemAscNomeAsc()).thenReturn(List.of(categoria));
+        when(produtos.findByCategoriaIdAndAtivoTrueOrderByNomeAsc(1L)).thenAnswer(
+                invocation -> salvos.stream().filter(Produto::isAtivo).toList());
+
+        service.cadastrar(request(
+                "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of(1L)));
+        List<CardapioCategoriaResponse> cardapio = service.listarCardapio();
+
+        assertEquals(List.of("Bruschetta"),
+                cardapio.get(0).produtos().stream().map(ProdutoResponse::nome).toList());
+        assertTrue(cardapio.get(0).produtos().get(0).ativo());
     }
 
     private Categoria categoria(Long id, String nome, int ordem, boolean ativo) {
