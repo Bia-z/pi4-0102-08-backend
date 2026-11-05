@@ -21,6 +21,7 @@ public class PerfilAccessRules implements AuthorizationManager<RequestAuthorizat
             operation("POST", "/api/mesas", Perfil.ADMIN),
             operation("POST", "/api/pedidos", Perfil.ADMIN, Perfil.GARCOM),
             operation("PATCH", "/api/pedidos/*/status", Perfil.ADMIN, Perfil.COZINHA),
+            operation("GET", "/api/cozinha/pedidos", Perfil.ADMIN, Perfil.COZINHA),
             operation("GET", "/api/mesas/mapa", Perfil.ADMIN, Perfil.GARCOM, Perfil.CAIXA),
             operation("POST", "/api/pedidos/*/pagamentos", Perfil.ADMIN, Perfil.CAIXA),
             operation("GET", "/api/pedidos/*/comprovante-pdf",

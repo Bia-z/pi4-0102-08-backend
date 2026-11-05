@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().access(perfilAccessRules))
                 .addFilterBefore(new JwtAuthFilter(jwtService, authenticationEntryPoint),
                         UsernamePasswordAuthenticationFilter.class);
