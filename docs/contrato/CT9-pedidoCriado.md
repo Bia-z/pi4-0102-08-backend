@@ -15,15 +15,19 @@
 | pedidoId | inteiro | sim | 101 |
 | numeroMesa | inteiro | sim | 10 |
 | horario | data e hora | sim | 2026-10-13T14:32:00 |
-| itens | lista de objeto ItemPedidoNotificacao | sim | [ { "nome": "Bruschetta Italiana", "quantidade": 2, "observacao": "Sem cebola" } ] |
+| itens | lista de objeto ItemPedidoNotificacao | sim | [ { "itemId": 501, "nome": "Bruschetta Italiana", "quantidade": 2, "observacao": "Sem cebola", "status": "aguardando" } ] |
 
 #### objeto ItemPedidoNotificacao
 
 | Campo | Tipo | Obrigatório | Exemplo |
 | :--- | :--- | :--- | :--- |
+| itemId | inteiro | sim | 501 |
 | nome | texto | sim | Bruschetta Italiana |
 | quantidade | inteiro | sim | 2 |
 | observacao | texto | não | Sem cebola |
+| status | um de: aguardando, em_preparo, pronto | sim | aguardando |
+
+A conexão é feita em `/ws` (STOMP), enviando `Authorization: Bearer <token>` no frame `CONNECT`. Sem token válido, a conexão é recusada.
 
 ### Saída
 
@@ -33,4 +37,4 @@ não tem
 
 | Quando | O que volta |
 | :--- | :--- |
-| O painel da cozinha perde a conexão Wi-Fi | Nada. Ao reconectar, o frontend busca os pedidos pendentes via HTTP |
+| O painel da cozinha perde a conexão Wi-Fi | Nada. Ao reconectar, o frontend busca os pedidos pendentes via HTTP (CT22) |
