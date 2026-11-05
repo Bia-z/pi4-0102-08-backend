@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.pucc.restmanager.cardapio.domain.Categoria;
+import br.pucc.restmanager.cardapio.domain.Ingrediente;
 import br.pucc.restmanager.cardapio.domain.Produto;
 import br.pucc.restmanager.cardapio.dto.CadastrarProdutoRequest;
 import br.pucc.restmanager.cardapio.dto.CardapioCategoriaResponse;
@@ -48,13 +49,14 @@ class ProdutoServiceTest {
     @Test
     void cadastraProdutoNaCategoriaEDevolveRespostaDoContrato() {
         Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente ingrediente = new Ingrediente("Tomate", true);
         when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
         when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
-        when(ingredientes.findAllById(List.of())).thenReturn(List.of());
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(1L))).thenReturn(List.of(ingrediente));
         when(produtos.save(any(Produto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ProdutoResponse response = service.cadastrar(request(
-                "Bruschetta", new BigDecimal("28.00"), 1L, null));
+                "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of(1L)));
 
         assertEquals("Bruschetta", response.nome());
         assertEquals(1L, response.categoriaId());
@@ -107,13 +109,53 @@ class ProdutoServiceTest {
     void recusaIngredienteInexistente() {
         when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
         when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
-        when(ingredientes.findAllById(List.of(5L))).thenReturn(List.of());
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(5L))).thenReturn(List.of());
 
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.cadastrar(new CadastrarProdutoRequest(
                         "Bruschetta", null, new BigDecimal("28.00"), 1L, null, List.of(5L), true)));
 
         assertEquals(ErrorCode.INGREDIENTE_NAO_ENCONTRADO, exception.getErro());
+        verify(produtos, never()).save(any(Produto.class));
+    }
+
+    @Test
+    void exigeAoMenosUmIngrediente() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.cadastrar(request(
+                        "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of())));
+
+        assertEquals(ErrorCode.INGREDIENTES_OBRIGATORIOS, exception.getErro());
+        verify(produtos, never()).save(any(Produto.class));
+    }
+
+    @Test
+    void recusaIngredienteRepetido() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.cadastrar(request(
+                        "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of(1L, 1L))));
+
+        assertEquals(ErrorCode.INGREDIENTE_DUPLICADO, exception.getErro());
+        verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
+        verify(produtos, never()).save(any(Produto.class));
+    }
+
+    @Test
+    void recusaProdutoSemIngredientesMesmoQuandoListaEstaAusente() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.cadastrar(new CadastrarProdutoRequest(
+                        "Bruschetta", null, new BigDecimal("28.00"), 1L, null, null, true)));
+
+        assertEquals(ErrorCode.INGREDIENTES_OBRIGATORIOS, exception.getErro());
         verify(produtos, never()).save(any(Produto.class));
     }
 
@@ -143,6 +185,12 @@ class ProdutoServiceTest {
     private CadastrarProdutoRequest request(String nome, BigDecimal preco, Long categoriaId,
             String imagemUrl) {
         return new CadastrarProdutoRequest(
-                nome, null, preco, categoriaId, imagemUrl, null, true);
+                nome, null, preco, categoriaId, imagemUrl, List.of(1L), true);
+    }
+
+    private CadastrarProdutoRequest request(String nome, BigDecimal preco, Long categoriaId,
+            String imagemUrl, List<Long> idsIngredientes) {
+        return new CadastrarProdutoRequest(
+                nome, null, preco, categoriaId, imagemUrl, idsIngredientes, true);
     }
 }

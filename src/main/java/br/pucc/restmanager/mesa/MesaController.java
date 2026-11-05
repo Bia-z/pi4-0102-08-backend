@@ -1,9 +1,11 @@
 package br.pucc.restmanager.mesa;
 
 import br.pucc.restmanager.mesa.dto.CadastrarMesaRequest;
+import br.pucc.restmanager.mesa.dto.MapaMesasResponse;
 import br.pucc.restmanager.mesa.dto.MesaResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,11 @@ public class MesaController {
 
     public MesaController(MesaService mesas) {
         this.mesas = mesas;
+    }
+
+    @GetMapping("/mapa")
+    public MapaMesasResponse obterMapaMesas() {
+        return mesas.obterMapaMesas();
     }
 
     @PostMapping

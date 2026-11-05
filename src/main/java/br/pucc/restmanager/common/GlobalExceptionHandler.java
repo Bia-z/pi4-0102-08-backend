@@ -1,5 +1,6 @@
 package br.pucc.restmanager.common;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,5 +13,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> tratarNegocio(BusinessException ex) {
         return ResponseEntity.status(ex.getErro().getStatus())
                 .body(new ApiError(ex.getErro().name()));
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiError> tratarFalhaDeBanco(DataAccessException ex) {
+        ErrorCode erro = ErrorCode.FALHA_INTERNA_SERVIDO;
+        return ResponseEntity.status(erro.getStatus()).body(new ApiError(erro.name()));
     }
 }

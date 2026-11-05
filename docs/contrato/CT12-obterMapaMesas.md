@@ -7,6 +7,7 @@
 | **Quem responde** | Backend |
 | **Atende** | E6 |
 | **Como chamar** | GET `/api/mesas/mapa` |
+| **Acesso** | ADMIN, GARCOM ou CAIXA |
 
 ### Entrada
 
@@ -26,6 +27,10 @@ não tem
 | numero | inteiro | sim | 10 |
 | status | um de: disponivel, ocupada, reservada, em_pagamento | sim | ocupada |
 | valorConsumido | decimal | sim | 143.00 |
+
+`valorConsumido` soma o subtotal dos itens não cancelados em pedidos não pagos ou cancelados,
+acrescido da taxa de serviço percentual cadastrada em `tb_configuracao`. Mesas inativas não
+são incluídas.
 
 ### Erros
 

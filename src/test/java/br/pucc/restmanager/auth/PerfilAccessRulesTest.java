@@ -47,4 +47,17 @@ class PerfilAccessRulesTest {
         assertTrue(rules.perfilPermitido("POST", "/api/mesas", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/mesas", Perfil.GARCOM));
     }
+
+    @Test
+    void obterMapaMesasEPermitidoParaGarcomEcaixa() {
+        assertTrue(rules.perfilPermitido("GET", "/api/mesas/mapa", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido("GET", "/api/mesas/mapa", Perfil.CAIXA));
+        assertFalse(rules.perfilPermitido("GET", "/api/mesas/mapa", Perfil.COZINHA));
+    }
+
+    @Test
+    void listarIngredientesDisponiveisEExclusivoDoAdministrador() {
+        assertTrue(rules.perfilPermitido("GET", "/api/ingredientes", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("GET", "/api/ingredientes", Perfil.GARCOM));
+    }
 }

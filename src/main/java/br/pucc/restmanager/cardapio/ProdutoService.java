@@ -10,6 +10,7 @@ import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -46,10 +47,18 @@ public class ProdutoService {
         Categoria categoria = categorias.findById(request.categoriaId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORIA_NAO_ENCONTRADA));
 
-        List<Long> idsIngredientes = request.ingredientes() == null
-                ? List.of()
-                : request.ingredientes().stream().distinct().toList();
-        List<Ingrediente> encontrados = ingredientes.findAllById(idsIngredientes);
+        List<Long> idsIngredientes = request.ingredientes();
+        if (idsIngredientes == null || idsIngredientes.isEmpty()) {
+            throw new BusinessException(ErrorCode.INGREDIENTES_OBRIGATORIOS);
+        }
+        if (idsIngredientes.stream().anyMatch(Objects::isNull)) {
+            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
+        }
+        if (idsIngredientes.stream().distinct().count() != idsIngredientes.size()) {
+            throw new BusinessException(ErrorCode.INGREDIENTE_DUPLICADO);
+        }
+
+        List<Ingrediente> encontrados = ingredientes.findByIdInAndAtivoTrue(idsIngredientes);
         if (encontrados.size() != idsIngredientes.size()) {
             throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
         }
