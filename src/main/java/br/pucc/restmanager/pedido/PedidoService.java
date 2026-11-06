@@ -9,8 +9,11 @@ import br.pucc.restmanager.mesa.domain.Mesa;
 import br.pucc.restmanager.mesa.domain.StatusMesa;
 import br.pucc.restmanager.pedido.domain.ItemPedido;
 import br.pucc.restmanager.pedido.domain.Pedido;
+import br.pucc.restmanager.pedido.domain.StatusItem;
+import br.pucc.restmanager.pedido.domain.StatusPedido;
 import br.pucc.restmanager.pedido.dto.CriarPedidoRequest;
 import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
+import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
 import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
@@ -81,6 +84,21 @@ public class PedidoService {
         Pedido salvo = pedidos.save(pedido);
         pedidoCriadoPublisher.publicar(salvo);
         return PedidoResponse.from(salvo);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoListResponse> listarPedidos(
+            StatusPedido status,
+            StatusItem statusItem,
+            Long garcomId,
+            Long mesaId,
+            boolean cozinha) {
+        return pedidos.listarAbertos(status, statusItem, garcomId, mesaId, cozinha).stream()
+                .filter(pedido -> !cozinha || pedido.getItens().stream()
+                        .anyMatch(item -> item.getStatus() == StatusItem.AGUARDANDO
+                                || item.getStatus() == StatusItem.EM_PREPARO))
+                .map(pedido -> PedidoListResponse.from(pedido, cozinha))
+                .toList();
     }
 
     private ItemValidado validarItem(ItemPedidoRequest request) {

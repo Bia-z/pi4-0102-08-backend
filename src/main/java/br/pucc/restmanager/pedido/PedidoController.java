@@ -1,14 +1,23 @@
 package br.pucc.restmanager.pedido;
 
+import br.pucc.restmanager.pedido.domain.StatusItem;
+import br.pucc.restmanager.pedido.domain.StatusPedido;
 import br.pucc.restmanager.pedido.dto.CriarPedidoRequest;
+import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Locale;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -18,6 +27,34 @@ public class PedidoController {
 
     public PedidoController(PedidoService pedidos) {
         this.pedidos = pedidos;
+    }
+
+    @GetMapping
+    public List<PedidoListResponse> listarPedidos(
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "statusItem", required = false) String statusItem,
+            @RequestParam(name = "garcomId", required = false) Long garcomId,
+            @RequestParam(name = "mesaId", required = false) Long mesaId,
+            Authentication authentication) {
+        boolean cozinha = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_COZINHA"));
+        return pedidos.listarPedidos(
+                converterStatus(status, StatusPedido.class),
+                converterStatus(statusItem, StatusItem.class),
+                garcomId,
+                mesaId,
+                cozinha);
+    }
+
+    private <T extends Enum<T>> T converterStatus(String valor, Class<T> tipo) {
+        if (valor == null) {
+            return null;
+        }
+        try {
+            return Enum.valueOf(tipo, valor.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status inválido", ex);
+        }
     }
 
     @PostMapping

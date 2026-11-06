@@ -13,6 +13,8 @@ class PerfilAccessRulesTest {
     @Test
     void perfilPermitidoAcessaOperacaoCorrespondente() {
         assertTrue(rules.perfilPermitido("POST", "/api/pedidos", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.COZINHA));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.GARCOM));
         assertTrue(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/iniciar", Perfil.CAIXA));
         assertTrue(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/processar", Perfil.CAIXA));
     }
@@ -27,8 +29,16 @@ class PerfilAccessRulesTest {
 
     @Test
     void metodoEOperacaoPrecisamEstarDeclarados() {
-        assertFalse(rules.perfilPermitido("GET", "/api/pedidos", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("GET", "/api/rota-nao-cadastrada", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/rota-nao-cadastrada", Perfil.ADMIN));
+    }
+
+    @Test
+    void listarPedidosEPermitidoParaAdminGarcomECozinha() {
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.COZINHA));
+        assertFalse(rules.perfilPermitido("GET", "/api/pedidos", Perfil.CAIXA));
     }
 
     @Test

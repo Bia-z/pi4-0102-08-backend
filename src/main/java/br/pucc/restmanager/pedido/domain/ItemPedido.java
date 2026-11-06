@@ -63,6 +63,10 @@ public class ItemPedido {
         this.pedido = pedido;
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public Produto getProduto() {
         return produto;
     }

@@ -21,6 +21,7 @@ import br.pucc.restmanager.pedido.domain.StatusItem;
 import br.pucc.restmanager.pedido.domain.StatusPedido;
 import br.pucc.restmanager.pedido.dto.CriarPedidoRequest;
 import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
+import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
 import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
@@ -202,6 +203,61 @@ class PedidoServiceTest {
         verify(produtos, never()).findById(any());
         verify(pedidos, never()).save(any(Pedido.class));
         verify(pedidoCriadoPublisher, never()).publicar(any(Pedido.class));
+    }
+
+    @Test
+    void listaPedidosComFiltrosNaOrdemDoRepositorio() {
+        Pedido pedido = pedidoParaListagem(StatusItem.AGUARDANDO, StatusPedido.AGUARDANDO);
+        when(pedidos.listarAbertos(
+                StatusPedido.AGUARDANDO, StatusItem.AGUARDANDO, 2L, 5L, false))
+                .thenReturn(List.of(pedido));
+
+        List<PedidoListResponse> resposta = service.listarPedidos(
+                StatusPedido.AGUARDANDO, StatusItem.AGUARDANDO, 2L, 5L, false);
+
+        assertEquals(1, resposta.size());
+        assertEquals(5L, resposta.get(0).mesaId());
+        assertEquals(2L, resposta.get(0).garcomId());
+        assertEquals("aguardando", resposta.get(0).itens().get(0).status());
+        verify(pedidos).listarAbertos(
+                StatusPedido.AGUARDANDO, StatusItem.AGUARDANDO, 2L, 5L, false);
+    }
+
+    @Test
+    void cozinhaRecebeSomentePedidosEItensAguardandoOuEmPreparo() {
+        Pedido pedidoComItensEmVariosStatus = pedidoParaListagem(
+                StatusItem.AGUARDANDO, StatusPedido.EM_PREPARO);
+        ItemPedido pronto = new ItemPedido(produto, 1, null);
+        ReflectionTestUtils.setField(pronto, "status", StatusItem.PRONTO);
+        pedidoComItensEmVariosStatus.adicionarItem(pronto);
+        Pedido pedidoSemItensPendentes = pedidoParaListagem(
+                StatusItem.PRONTO, StatusPedido.PRONTO);
+        when(pedidos.listarAbertos(null, null, null, null, true))
+                .thenReturn(List.of(pedidoComItensEmVariosStatus, pedidoSemItensPendentes));
+
+        List<PedidoListResponse> resposta = service.listarPedidos(null, null, null, null, true);
+
+        assertEquals(1, resposta.size());
+        assertEquals(1, resposta.get(0).itens().size());
+        assertEquals("aguardando", resposta.get(0).itens().get(0).status());
+    }
+
+    @Test
+    void listaVaziaQuandoNaoHaPedidosAbertosCorrespondentes() {
+        when(pedidos.listarAbertos(null, null, null, null, false)).thenReturn(List.of());
+
+        assertEquals(List.of(), service.listarPedidos(null, null, null, null, false));
+    }
+
+    private Pedido pedidoParaListagem(StatusItem statusItem, StatusPedido statusPedido) {
+        Pedido pedido = new Pedido(mesa, garcom, new BigDecimal("22.00"));
+        ReflectionTestUtils.setField(pedido, "id", 100L);
+        ReflectionTestUtils.setField(pedido, "status", statusPedido);
+        ItemPedido item = new ItemPedido(produto, 1, null);
+        ReflectionTestUtils.setField(item, "id", 200L);
+        ReflectionTestUtils.setField(item, "status", statusItem);
+        pedido.adicionarItem(item);
+        return pedido;
     }
 
     private void prepararPedidoValido() {

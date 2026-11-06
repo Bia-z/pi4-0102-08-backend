@@ -73,6 +73,10 @@ public class Pedido {
         return mesa;
     }
 
+    public Usuario getGarcom() {
+        return garcom;
+    }
+
     public StatusPedido getStatus() {
         return status;
     }
