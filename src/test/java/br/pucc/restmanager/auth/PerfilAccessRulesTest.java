@@ -17,6 +17,10 @@ class PerfilAccessRulesTest {
         assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.GARCOM));
         assertTrue(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/iniciar", Perfil.CAIXA));
         assertTrue(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/processar", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido(
+                "GET", "/api/pedidos/42/comprovante-pdf", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido(
+                "GET", "/api/pedidos/42/comprovante-pdf", Perfil.CAIXA));
     }
 
     @Test
@@ -31,6 +35,8 @@ class PerfilAccessRulesTest {
         assertFalse(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/iniciar", Perfil.GARCOM));
         assertFalse(rules.perfilPermitido(
                 "POST", "/api/mesas/42/pagamento/processar", Perfil.GARCOM));
+        assertFalse(rules.perfilPermitido(
+                "GET", "/api/pedidos/42/comprovante-pdf", Perfil.COZINHA));
     }
 
     @Test
