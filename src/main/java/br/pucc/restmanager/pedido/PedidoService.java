@@ -12,6 +12,7 @@ import br.pucc.restmanager.pedido.domain.Pedido;
 import br.pucc.restmanager.pedido.dto.CriarPedidoRequest;
 import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
+import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Usuario;
 import java.math.BigDecimal;
@@ -30,16 +31,19 @@ public class PedidoService {
     private final ProdutoRepository produtos;
     private final UsuarioRepository usuarios;
     private final PedidoRepository pedidos;
+    private final PedidoCriadoPublisher pedidoCriadoPublisher;
 
     public PedidoService(
             MesaRepository mesas,
             ProdutoRepository produtos,
             UsuarioRepository usuarios,
-            PedidoRepository pedidos) {
+            PedidoRepository pedidos,
+            PedidoCriadoPublisher pedidoCriadoPublisher) {
         this.mesas = mesas;
         this.produtos = produtos;
         this.usuarios = usuarios;
         this.pedidos = pedidos;
+        this.pedidoCriadoPublisher = pedidoCriadoPublisher;
     }
 
     @Transactional
@@ -53,11 +57,11 @@ public class PedidoService {
             throw new BusinessException(ErrorCode.ITENS_PEDIDO_OBRIGATORIOS);
         }
 
-        Usuario garcom = usuarios.findById(request.garcomId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
         List<ItemValidado> itens = request.itens().stream()
                 .map(this::validarItem)
                 .toList();
+        Usuario garcom = usuarios.findById(request.garcomId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
 
         BigDecimal subtotal = itens.stream()
                 .map(item -> item.produto().getPreco()
@@ -74,7 +78,9 @@ public class PedidoService {
                 item.request().observacao())));
 
         mesa.ocupar();
-        return PedidoResponse.from(pedidos.save(pedido));
+        Pedido salvo = pedidos.save(pedido);
+        pedidoCriadoPublisher.publicar(salvo);
+        return PedidoResponse.from(salvo);
     }
 
     private ItemValidado validarItem(ItemPedidoRequest request) {

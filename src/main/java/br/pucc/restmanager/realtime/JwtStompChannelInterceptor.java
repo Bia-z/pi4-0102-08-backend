@@ -13,6 +13,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +39,25 @@ public class JwtStompChannelInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             accessor.setUser(authenticate(accessor));
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            if (accessor.getUser() == null || !"/topic/mesas".equals(accessor.getDestination())) {
+            String destination = accessor.getDestination();
+            if (accessor.getUser() == null
+                    || (!"/topic/mesas".equals(destination)
+                            && !("/topic/cozinha".equals(destination)
+                                    && podeAcessarCozinha(accessor)))) {
                 throw new AccessDeniedException("Inscrição STOMP não autorizada");
             }
         }
         return message;
+    }
+
+    private boolean podeAcessarCozinha(StompHeaderAccessor accessor) {
+        if (!(accessor.getUser() instanceof Authentication authentication)) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority)
+                        || "ROLE_COZINHA".equals(authority));
     }
 
     private UsernamePasswordAuthenticationToken authenticate(StompHeaderAccessor accessor) {

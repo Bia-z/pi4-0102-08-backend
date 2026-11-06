@@ -12,10 +12,14 @@
 
 | Campo | Tipo | Obrigatório | Exemplo |
 | :--- | :--- | :--- | :--- |
+| tipo | texto | sim | pedidoCriado |
 | pedidoId | inteiro | sim | 101 |
 | numeroMesa | inteiro | sim | 10 |
 | horario | data e hora | sim | 2026-10-13T14:32:00 |
 | itens | lista de objeto ItemPedidoNotificacao | sim | [ { "nome": "Bruschetta Italiana", "quantidade": 2, "observacao": "Sem cebola" } ] |
+
+A mensagem é publicada em `/topic/cozinha` após o commit da criação do pedido.
+Pedidos recusados não geram notificação.
 
 #### objeto ItemPedidoNotificacao
 

@@ -22,6 +22,7 @@ import br.pucc.restmanager.pedido.domain.StatusPedido;
 import br.pucc.restmanager.pedido.dto.CriarPedidoRequest;
 import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
+import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
@@ -51,6 +52,9 @@ class PedidoServiceTest {
     @Mock
     PedidoRepository pedidos;
 
+    @Mock
+    PedidoCriadoPublisher pedidoCriadoPublisher;
+
     private PedidoService service;
     private Mesa mesa;
     private Produto produto;
@@ -58,7 +62,7 @@ class PedidoServiceTest {
 
     @BeforeEach
     void montar() {
-        service = new PedidoService(mesas, produtos, usuarios, pedidos);
+        service = new PedidoService(mesas, produtos, usuarios, pedidos, pedidoCriadoPublisher);
         mesa = new Mesa(10, 4);
         ReflectionTestUtils.setField(mesa, "id", 5L);
         produto = new Produto(
@@ -85,7 +89,7 @@ class PedidoServiceTest {
             return pedido;
         });
 
-        PedidoResponse response = service.criarPedido(request(2, null));
+        PedidoResponse response = service.criarPedido(request(2, "Sem molho"));
 
         ArgumentCaptor<Pedido> pedidoCaptor = ArgumentCaptor.forClass(Pedido.class);
         verify(pedidos).save(pedidoCaptor.capture());
@@ -101,6 +105,7 @@ class PedidoServiceTest {
         assertEquals("Sem molho", item.getObservacao());
         assertEquals(new BigDecimal("20.00"), item.getPrecoUnitario());
         assertEquals(StatusMesa.OCUPADA, mesa.getStatus());
+        verify(pedidoCriadoPublisher).publicar(salvo);
     }
 
     @Test
@@ -136,6 +141,7 @@ class PedidoServiceTest {
 
         assertEquals(ErrorCode.MESA_NAO_ENCONTRADA, exception.getErro());
         verify(pedidos, never()).save(any(Pedido.class));
+        verify(pedidoCriadoPublisher, never()).publicar(any(Pedido.class));
     }
 
     @Test
@@ -147,12 +153,12 @@ class PedidoServiceTest {
 
         assertEquals(ErrorCode.MESA_EM_PAGAMENTO, exception.getErro());
         verify(pedidos, never()).save(any(Pedido.class));
+        verify(pedidoCriadoPublisher, never()).publicar(any(Pedido.class));
     }
 
     @Test
     void recusaProdutoInexistenteComErroDaFicha() {
         prepararMesa(StatusMesa.DISPONIVEL);
-        when(usuarios.findById(2L)).thenReturn(Optional.of(garcom));
         when(produtos.findById(8L)).thenReturn(Optional.empty());
 
         BusinessException exception = assertThrows(
@@ -160,6 +166,7 @@ class PedidoServiceTest {
 
         assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErro());
         verify(pedidos, never()).save(any(Pedido.class));
+        verify(pedidoCriadoPublisher, never()).publicar(any(Pedido.class));
     }
 
     @Test
@@ -172,7 +179,6 @@ class PedidoServiceTest {
                 new BigDecimal("20.00"),
                 false,
                 java.util.Set.of());
-        when(usuarios.findById(2L)).thenReturn(Optional.of(garcom));
         when(produtos.findById(8L)).thenReturn(Optional.of(inativo));
 
         BusinessException exception = assertThrows(
@@ -180,6 +186,7 @@ class PedidoServiceTest {
 
         assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErro());
         verify(pedidos, never()).save(any(Pedido.class));
+        verify(pedidoCriadoPublisher, never()).publicar(any(Pedido.class));
     }
 
     @Test
@@ -194,6 +201,7 @@ class PedidoServiceTest {
         assertEquals(ErrorCode.QUANTIDADE_INVALIDA, exception.getErro());
         verify(produtos, never()).findById(any());
         verify(pedidos, never()).save(any(Pedido.class));
+        verify(pedidoCriadoPublisher, never()).publicar(any(Pedido.class));
     }
 
     private void prepararPedidoValido() {
