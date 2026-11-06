@@ -15,13 +15,17 @@ public class StatusMesaPublisher {
     }
 
     public void publicarDisponivel(Long mesaId, int numero) {
+        publicarStatusAtualizado(mesaId, numero, "disponivel");
+    }
+
+    public void publicarStatusAtualizado(Long mesaId, int numero, String status) {
         messaging.convertAndSend(
                 "/topic/mesas",
                 new StatusMesaMessage(
                         "statusMesaAtualizado",
                         mesaId,
                         numero,
-                        "disponivel",
+                        status,
                         LocalDateTime.now()));
     }
 }
