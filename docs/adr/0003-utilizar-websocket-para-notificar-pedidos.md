@@ -25,7 +25,7 @@ Canais WebSocket (STOMP) do sistema:
 | Canal | Contrato | Quem recebe |
 | :--- | :--- | :--- |
 | `/topic/cozinha` | CT9 `pedidoCriado` | Painel da Cozinha |
-| `/topic/pedidos` | CT11 `statusPedidoAtualizado` | Painéis do Garçom e da Cozinha |
+| `/topic/pedidos` | CT11 `statusPedidoAtualizado` | Painéis do Garçom, da Cozinha e do Caixa |
 | `/topic/mesas` | CT21 `statusMesaAtualizado` | Painéis do Garçom e do Caixa |
 
 **Alternativas consideradas:**

@@ -24,6 +24,7 @@ import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
 import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
 import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
+import br.pucc.restmanager.realtime.StatusPedidoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
@@ -54,7 +55,13 @@ class PedidoServiceTest {
     PedidoRepository pedidos;
 
     @Mock
+    ItemPedidoRepository itens;
+
+    @Mock
     PedidoCriadoPublisher pedidoCriadoPublisher;
+
+    @Mock
+    StatusPedidoPublisher statusPedidoPublisher;
 
     private PedidoService service;
     private Mesa mesa;
@@ -63,7 +70,8 @@ class PedidoServiceTest {
 
     @BeforeEach
     void montar() {
-        service = new PedidoService(mesas, produtos, usuarios, pedidos, pedidoCriadoPublisher);
+        service = new PedidoService(
+                mesas, produtos, usuarios, pedidos, itens, pedidoCriadoPublisher, statusPedidoPublisher);
         mesa = new Mesa(10, 4);
         ReflectionTestUtils.setField(mesa, "id", 5L);
         produto = new Produto(
@@ -247,6 +255,66 @@ class PedidoServiceTest {
         when(pedidos.listarAbertos(null, null, null, null, false)).thenReturn(List.of());
 
         assertEquals(List.of(), service.listarPedidos(null, null, null, null, false));
+    }
+
+    @Test
+    void atualizaStatusDoItemNaSequenciaPermitidaEPublicaEvento() {
+        Pedido pedido = pedidoParaListagem(StatusItem.AGUARDANDO, StatusPedido.AGUARDANDO);
+        ItemPedido item = pedido.getItens().get(0);
+        when(pedidos.existsById(100L)).thenReturn(true);
+        when(itens.findByIdAndPedidoId(200L, 100L)).thenReturn(Optional.of(item));
+        when(itens.save(item)).thenReturn(item);
+
+        var resposta = service.atualizarStatusPedido(100L, 200L, StatusItem.EM_PREPARO);
+
+        assertEquals("em_preparo", resposta.status());
+        assertEquals(StatusItem.EM_PREPARO, item.getStatus());
+        assertEquals(100L, resposta.pedidoId());
+        assertEquals(200L, resposta.itemId());
+        verify(statusPedidoPublisher).publicar(item);
+    }
+
+    @Test
+    void recusaAtualizacaoQuandoPedidoNaoExisteComErroDaFicha() {
+        when(pedidos.existsById(100L)).thenReturn(false);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.atualizarStatusPedido(100L, 200L, StatusItem.EM_PREPARO));
+
+        assertEquals(ErrorCode.PEDIDO_NAO_ENCONTRADO, exception.getErro());
+        verify(itens, never()).save(any(ItemPedido.class));
+        verify(statusPedidoPublisher, never()).publicar(any(ItemPedido.class));
+    }
+
+    @Test
+    void recusaAtualizacaoQuandoItemNaoPertenceAoPedido() {
+        when(pedidos.existsById(100L)).thenReturn(true);
+        when(itens.findByIdAndPedidoId(200L, 100L)).thenReturn(Optional.empty());
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.atualizarStatusPedido(100L, 200L, StatusItem.EM_PREPARO));
+
+        assertEquals(ErrorCode.ITEM_PEDIDO_NAO_ENCONTRADO, exception.getErro());
+        verify(itens, never()).save(any(ItemPedido.class));
+        verify(statusPedidoPublisher, never()).publicar(any(ItemPedido.class));
+    }
+
+    @Test
+    void recusaTransicaoForaDaSequenciaComErroDaFicha() {
+        ItemPedido item = pedidoParaListagem(StatusItem.AGUARDANDO, StatusPedido.AGUARDANDO)
+                .getItens().get(0);
+        when(pedidos.existsById(100L)).thenReturn(true);
+        when(itens.findByIdAndPedidoId(200L, 100L)).thenReturn(Optional.of(item));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.atualizarStatusPedido(100L, 200L, StatusItem.PRONTO));
+
+        assertEquals(ErrorCode.TRANSICAO_STATUS_INVALIDA, exception.getErro());
+        verify(itens, never()).save(any(ItemPedido.class));
+        verify(statusPedidoPublisher, never()).publicar(any(ItemPedido.class));
     }
 
     private Pedido pedidoParaListagem(StatusItem statusItem, StatusPedido statusPedido) {

@@ -22,6 +22,12 @@ class PerfilAccessRulesTest {
     @Test
     void perfilNaoPermitidoERecusado() {
         assertFalse(rules.perfilPermitido("POST", "/api/pedidos", Perfil.COZINHA));
+        assertTrue(rules.perfilPermitido(
+                "PATCH", "/api/pedidos/42/itens/7/status", Perfil.COZINHA));
+        assertTrue(rules.perfilPermitido(
+                "PATCH", "/api/pedidos/42/itens/7/status", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido(
+                "PATCH", "/api/pedidos/42/itens/7/status", Perfil.GARCOM));
         assertFalse(rules.perfilPermitido("POST", "/api/mesas/42/pagamento/iniciar", Perfil.GARCOM));
         assertFalse(rules.perfilPermitido(
                 "POST", "/api/mesas/42/pagamento/processar", Perfil.GARCOM));

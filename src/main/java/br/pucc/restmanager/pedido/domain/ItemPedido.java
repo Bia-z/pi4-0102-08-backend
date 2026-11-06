@@ -1,6 +1,8 @@
 package br.pucc.restmanager.pedido.domain;
 
 import br.pucc.restmanager.cardapio.domain.Produto;
+import br.pucc.restmanager.common.BusinessException;
+import br.pucc.restmanager.common.ErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -85,5 +87,21 @@ public class ItemPedido {
 
     public StatusItem getStatus() {
         return status;
+    }
+
+    public LocalDateTime getAtualizadoEm() {
+        return atualizadoEm;
+    }
+
+    public Pedido getPedido() {
+        return pedido;
+    }
+
+    public void atualizarStatus(StatusItem novoStatus) {
+        if (!status.permiteTransicaoPara(novoStatus)) {
+            throw new BusinessException(ErrorCode.TRANSICAO_STATUS_INVALIDA);
+        }
+        status = novoStatus;
+        atualizadoEm = LocalDateTime.now();
     }
 }

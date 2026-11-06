@@ -44,7 +44,8 @@ import org.springframework.web.bind.annotation.RestController;
         JwtService.class,
         AuthService.class,
         UsuarioService.class,
-        CodigoFuncionarioGenerator.class
+        CodigoFuncionarioGenerator.class,
+        GarcomAccessIntegrationTest.TestEndpoint.class
 })
 @TestPropertySource(properties = {
         "app.jwt.secret=segredo-de-teste-com-mais-de-32-caracteres-ok",
@@ -127,7 +128,7 @@ class GarcomAccessIntegrationTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().json("{\"erro\":\"ACESSO_NEGADO\"}"));
 
-        mockMvc.perform(patch("/api/pedidos/42/status")
+        mockMvc.perform(patch("/api/pedidos/42/itens/7/status")
                         .header("Authorization", "Bearer " + tokenGarcom))
                 .andExpect(status().isForbidden())
                 .andExpect(content().json("{\"erro\":\"ACESSO_NEGADO\"}"));
@@ -135,7 +136,7 @@ class GarcomAccessIntegrationTest {
     }
 
     @RestController
-    static class TestEndpoint {
+    public static class TestEndpoint {
         @PostMapping("/api/pedidos")
         String criarPedido() {
             return "pedido criado";
@@ -146,8 +147,8 @@ class GarcomAccessIntegrationTest {
             return "pagamento iniciado";
         }
 
-        @PatchMapping("/api/pedidos/{pedidoId}/status")
-        String atualizarStatus(@PathVariable String pedidoId) {
+        @PatchMapping("/api/pedidos/{pedidoId}/itens/{itemId}/status")
+        String atualizarStatus(@PathVariable String pedidoId, @PathVariable String itemId) {
             return "status atualizado";
         }
     }

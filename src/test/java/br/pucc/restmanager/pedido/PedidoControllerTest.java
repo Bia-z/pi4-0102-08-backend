@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 
 import br.pucc.restmanager.pedido.domain.StatusItem;
 import br.pucc.restmanager.pedido.domain.StatusPedido;
+import br.pucc.restmanager.pedido.dto.AtualizarStatusItemRequest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -56,6 +57,28 @@ class PedidoControllerTest {
                 2L,
                 5L,
                 true);
+    }
+
+    @Test
+    void converteStatusDoItemAntesDeDelegarAtualizacao() {
+        controller.atualizarStatusPedido(
+                100L, 200L, new AtualizarStatusItemRequest("em_preparo"));
+
+        verify(service).atualizarStatusPedido(100L, 200L, StatusItem.EM_PREPARO);
+    }
+
+    @Test
+    void recusaStatusDesconhecidoAoAtualizarItem() {
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> controller.atualizarStatusPedido(
+                        100L, 200L, new AtualizarStatusItemRequest("desconhecido")));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        verify(service, never()).atualizarStatusPedido(
+                org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.any());
     }
 
     private Authentication authentication(String role) {

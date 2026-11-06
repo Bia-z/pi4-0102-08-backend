@@ -15,7 +15,9 @@ import br.pucc.restmanager.pedido.dto.CriarPedidoRequest;
 import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
 import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
+import br.pucc.restmanager.pedido.dto.StatusItemResponse;
 import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
+import br.pucc.restmanager.realtime.StatusPedidoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Usuario;
 import java.math.BigDecimal;
@@ -34,19 +36,25 @@ public class PedidoService {
     private final ProdutoRepository produtos;
     private final UsuarioRepository usuarios;
     private final PedidoRepository pedidos;
+    private final ItemPedidoRepository itens;
     private final PedidoCriadoPublisher pedidoCriadoPublisher;
+    private final StatusPedidoPublisher statusPedidoPublisher;
 
     public PedidoService(
             MesaRepository mesas,
             ProdutoRepository produtos,
             UsuarioRepository usuarios,
             PedidoRepository pedidos,
-            PedidoCriadoPublisher pedidoCriadoPublisher) {
+            ItemPedidoRepository itens,
+            PedidoCriadoPublisher pedidoCriadoPublisher,
+            StatusPedidoPublisher statusPedidoPublisher) {
         this.mesas = mesas;
         this.produtos = produtos;
         this.usuarios = usuarios;
         this.pedidos = pedidos;
+        this.itens = itens;
         this.pedidoCriadoPublisher = pedidoCriadoPublisher;
+        this.statusPedidoPublisher = statusPedidoPublisher;
     }
 
     @Transactional
@@ -99,6 +107,22 @@ public class PedidoService {
                                 || item.getStatus() == StatusItem.EM_PREPARO))
                 .map(pedido -> PedidoListResponse.from(pedido, cozinha))
                 .toList();
+    }
+
+    @Transactional
+    public StatusItemResponse atualizarStatusPedido(
+            Long pedidoId,
+            Long itemId,
+            StatusItem novoStatus) {
+        if (!pedidos.existsById(pedidoId)) {
+            throw new BusinessException(ErrorCode.PEDIDO_NAO_ENCONTRADO);
+        }
+        ItemPedido item = itens.findByIdAndPedidoId(itemId, pedidoId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_PEDIDO_NAO_ENCONTRADO));
+        item.atualizarStatus(novoStatus);
+        ItemPedido salvo = itens.save(item);
+        statusPedidoPublisher.publicar(salvo);
+        return StatusItemResponse.from(salvo);
     }
 
     private ItemValidado validarItem(ItemPedidoRequest request) {
