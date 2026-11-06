@@ -86,4 +86,10 @@ public class Mesa {
     public Long getVersion() {
         return version;
     }
+
+    public void ocupar() {
+        if (status == StatusMesa.DISPONIVEL || status == StatusMesa.RESERVADA) {
+            status = StatusMesa.OCUPADA;
+        }
+    }
 }

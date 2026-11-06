@@ -40,4 +40,11 @@
 | :--- | :--- |
 | A mesa selecionada não existe | Erro MESA_NAO_ENCONTRADA |
 | Um dos produtos da lista não existe | Erro PRODUTO_NAO_ENCONTRADO |
+| Um dos produtos está inativo | Erro PRODUTO_NAO_ENCONTRADO |
+| A quantidade de um item é menor que 1 | Erro QUANTIDADE_INVALIDA |
 | A mesa está em pagamento no caixa | Erro MESA_EM_PAGAMENTO |
+
+Cada item é criado no status `aguardando`. O valor total do pedido é o subtotal
+dos itens acrescido da taxa de serviço configurada. Mesas disponíveis ou
+reservadas passam a ocupadas; pedidos adicionais em uma mesa ocupada permanecem
+na conta aberta da mesma mesa.

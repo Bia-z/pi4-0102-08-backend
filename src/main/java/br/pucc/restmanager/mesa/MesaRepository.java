@@ -1,14 +1,22 @@
 package br.pucc.restmanager.mesa;
 
 import br.pucc.restmanager.mesa.domain.Mesa;
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MesaRepository extends JpaRepository<Mesa, Long> {
 
     boolean existsByNumero(int numero);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT m FROM Mesa m WHERE m.id = :id AND m.ativo = true")
+    Optional<Mesa> buscarAtivaPorIdComBloqueio(@Param("id") Long id);
 
     @Query(value = """
             SELECT m.id AS "mesaId",
