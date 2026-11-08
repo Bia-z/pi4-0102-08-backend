@@ -11,10 +11,13 @@ import br.pucc.restmanager.caixa.domain.TipoMovimentacao;
 import br.pucc.restmanager.caixa.domain.Turno;
 import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
+import br.pucc.restmanager.usuario.UsuarioRepository;
+import br.pucc.restmanager.usuario.domain.Perfil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Locale;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class CaixaService {
 
     private final CaixaRepository caixas;
+    private final UsuarioRepository usuarios;
+    private final PasswordEncoder passwordEncoder;
 
-    public CaixaService(CaixaRepository caixas) {
+    public CaixaService(
+            CaixaRepository caixas,
+            UsuarioRepository usuarios,
+            PasswordEncoder passwordEncoder) {
         this.caixas = caixas;
+        this.usuarios = usuarios;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -63,6 +73,7 @@ public class CaixaService {
                 || request.valorFechamento().signum() < 0) {
             throw new BusinessException(ErrorCode.VALOR_INVALIDO);
         }
+        validarCredenciais(request.codigoUsuario(), request.senha());
         BigDecimal fechamento = moeda(request.valorFechamento());
         CaixaResponse aberto = caixas.caixaAbertoComBloqueio()
                 .orElseThrow(() -> new BusinessException(ErrorCode.CAIXA_NAO_ABERTO));
@@ -99,7 +110,7 @@ public class CaixaService {
         BigDecimal valor = moeda(request.valor());
         if (tipo == TipoMovimentacao.SANGRIA
                 && caixas.calcularValorEsperado(caixa.id()).compareTo(valor) < 0) {
-            throw new BusinessException(ErrorCode.MOVIMENTACAO_INVALIDA);
+            throw new BusinessException(ErrorCode.SALDO_CAIXA_INSUFICIENTE);
         }
         return caixas.movimentar(
                 caixa.id(), caixas.idOperador(codigoOperador), tipo.name(), valor, motivo);
@@ -114,6 +125,20 @@ public class CaixaService {
             return valor.setScale(2, RoundingMode.UNNECESSARY);
         } catch (ArithmeticException ex) {
             throw new BusinessException(ErrorCode.VALOR_INVALIDO);
+        }
+    }
+
+    private void validarCredenciais(String codigoUsuario, String senha) {
+        if (senha == null || senha.isBlank() || codigoUsuario == null || codigoUsuario.isBlank()) {
+            throw new BusinessException(ErrorCode.CREDENCIAIS_INVALIDAS);
+        }
+        boolean credenciaisValidas = usuarios.findByCodigo(codigoUsuario.trim())
+                .filter(usuario -> usuario.isAtivo()
+                        && (usuario.getPerfil() == Perfil.CAIXA || usuario.getPerfil() == Perfil.ADMIN)
+                        && passwordEncoder.matches(senha, usuario.getSenha()))
+                .isPresent();
+        if (!credenciaisValidas) {
+            throw new BusinessException(ErrorCode.CREDENCIAIS_INVALIDAS);
         }
     }
 }
