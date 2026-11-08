@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
+import br.pucc.restmanager.pagamento.domain.FormaPagamento;
 import br.pucc.restmanager.pagamento.dto.FormaPagamentoRequest;
 import br.pucc.restmanager.pagamento.dto.ProcessarPagamentoRequest;
 import br.pucc.restmanager.realtime.StatusMesaPublisher;
@@ -140,6 +141,57 @@ class PagamentoServiceTest {
     }
 
     @Test
+    void calculaTaxaDescontoETrocoNoPagamentoEmDinheiro() {
+        when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
+                new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
+        when(pagamentos.buscarPedidosAbertos(5L)).thenReturn(List.of(
+                new PagamentoMesaRepository.PedidoPagamento(101L, new BigDecimal("100.00"))));
+        when(pagamentos.taxaServicoPercentual()).thenReturn(new BigDecimal("10.00"));
+        ProcessarPagamentoRequest request = new ProcessarPagamentoRequest(
+                List.of(new FormaPagamentoRequest("dinheiro", new BigDecimal("115.00"))),
+                new BigDecimal("5.00"));
+
+        var response = service.processarPagamento(5L, request);
+
+        assertEquals(new BigDecimal("100.00"), response.subtotal());
+        assertEquals(new BigDecimal("10.00"), response.taxaServico());
+        assertEquals(new BigDecimal("5.00"), response.desconto());
+        assertEquals(new BigDecimal("105.00"), response.total());
+        assertEquals(new BigDecimal("115.00"), response.totalPago());
+        assertEquals(new BigDecimal("10.00"), response.troco());
+        verify(pagamentos).gravarPagamento(
+                101L,
+                FormaPagamento.DINHEIRO,
+                new BigDecimal("115.00"),
+                new BigDecimal("10.00"));
+    }
+
+    @Test
+    void recusaDescontoMaiorQueSubtotalMaisTaxaSemGravarPagamento() {
+        when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
+                new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
+        when(pagamentos.buscarPedidosAbertos(5L)).thenReturn(List.of(
+                new PagamentoMesaRepository.PedidoPagamento(101L, new BigDecimal("100.00"))));
+        when(pagamentos.taxaServicoPercentual()).thenReturn(new BigDecimal("10.00"));
+        ProcessarPagamentoRequest request = new ProcessarPagamentoRequest(
+                List.of(new FormaPagamentoRequest("dinheiro", new BigDecimal("1.00"))),
+                new BigDecimal("110.01"));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.processarPagamento(5L, request));
+
+        assertEquals(ErrorCode.DESCONTO_INVALIDO, exception.getErro());
+        verify(pagamentos, never()).gravarPagamento(
+                org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any());
+        verify(pagamentos, never()).marcarPedidosPagos(5L);
+        verify(pagamentos, never()).liberarMesa(5L);
+    }
+
+    @Test
     void fechaContaComPagamentoDivididoEPublicaMesaDisponivel() {
         when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
                 new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
@@ -158,6 +210,8 @@ class PagamentoServiceTest {
         assertEquals(new BigDecimal("150.00"), response.subtotal());
         assertEquals(new BigDecimal("15.00"), response.taxaServico());
         assertEquals(new BigDecimal("165.00"), response.total());
+        assertEquals(new BigDecimal("165.00"), response.totalPago());
+        assertEquals(new BigDecimal("0.00"), response.troco());
         assertEquals("disponivel", response.statusMesa());
         verify(pagamentos).marcarPedidosPagos(5L);
         verify(pagamentos).liberarMesa(5L);

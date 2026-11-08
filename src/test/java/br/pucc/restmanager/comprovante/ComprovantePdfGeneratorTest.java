@@ -37,4 +37,26 @@ class ComprovantePdfGeneratorTest {
         assertTrue(conteudo.contains("PIX: R$ 22,00"));
         assertTrue(!conteudo.contains("cancelado"));
     }
+
+    @Test
+    void geraPdfComDescontoETrocoRegistradosNoPagamento() {
+        ComprovanteDados dados = new ComprovanteDados(
+                10,
+                LocalDateTime.of(2026, 11, 6, 12, 0),
+                new BigDecimal("10.00"),
+                new BigDecimal("20.00"),
+                new BigDecimal("2.00"),
+                new BigDecimal("21.00"),
+                List.of(new ComprovanteDados.Item("Produto", 2, new BigDecimal("10.00"))),
+                List.of(new ComprovanteDados.Pagamento(
+                        "DINHEIRO", new BigDecimal("24.00"), new BigDecimal("3.00"))));
+
+        String conteudo = new String(generator.gerar(dados), Charset.forName("windows-1252"));
+
+        assertTrue(conteudo.contains("Taxa de servico (10,00%): R$ 2,00"));
+        assertTrue(conteudo.contains("Desconto: -R$ 1,00"));
+        assertTrue(conteudo.contains("TOTAL: R$ 21,00"));
+        assertTrue(conteudo.contains("DINHEIRO: R$ 24,00"));
+        assertTrue(conteudo.contains("Troco: R$ 3,00"));
+    }
 }
