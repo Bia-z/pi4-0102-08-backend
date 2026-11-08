@@ -40,4 +40,13 @@ public class Ingrediente {
     public boolean isAtivo() {
         return ativo;
     }
+
+    public void atualizar(String nome, boolean ativo) {
+        this.nome = nome;
+        this.ativo = ativo;
+    }
+
+    public void desativar() {
+        ativo = false;
+    }
 }

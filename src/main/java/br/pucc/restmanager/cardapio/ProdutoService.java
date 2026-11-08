@@ -34,34 +34,14 @@ public class ProdutoService {
 
     @Transactional
     public ProdutoResponse cadastrar(CadastrarProdutoRequest request) {
-        BigDecimal preco = request.preco();
-        if (preco == null || preco.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ErrorCode.PRECO_INVALIDO);
-        }
-
+        BigDecimal preco = validarPreco(request.preco());
         String nome = request.nome().trim();
         if (produtos.existsByNomeIgnoreCase(nome)) {
             throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
         }
 
-        Categoria categoria = categorias.findById(request.categoriaId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORIA_NAO_ENCONTRADA));
-
-        List<Long> idsIngredientes = request.ingredientes();
-        if (idsIngredientes == null || idsIngredientes.isEmpty()) {
-            throw new BusinessException(ErrorCode.INGREDIENTES_OBRIGATORIOS);
-        }
-        if (idsIngredientes.stream().anyMatch(Objects::isNull)) {
-            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
-        }
-        if (idsIngredientes.stream().distinct().count() != idsIngredientes.size()) {
-            throw new BusinessException(ErrorCode.INGREDIENTE_DUPLICADO);
-        }
-
-        List<Ingrediente> encontrados = ingredientes.findByIdInAndAtivoTrue(idsIngredientes);
-        if (encontrados.size() != idsIngredientes.size()) {
-            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
-        }
+        Categoria categoria = buscarCategoria(request.categoriaId());
+        List<Ingrediente> encontrados = buscarIngredientes(request.ingredientes());
 
         Produto produto = new Produto(
                 categoria,
@@ -72,6 +52,70 @@ public class ProdutoService {
                 Set.copyOf(encontrados));
         produto.adicionarImagemPrincipal(request.imagemUrl());
         return ProdutoResponse.from(produtos.save(produto));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProdutoResponse> listar() {
+        return produtos.findAllByOrderByNomeAsc().stream()
+                .map(ProdutoResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public ProdutoResponse atualizar(Long id, CadastrarProdutoRequest request) {
+        Produto produto = produtos.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUTO_NAO_ENCONTRADO));
+        String nome = request.nome().trim();
+        if (produtos.existsByNomeIgnoreCaseAndIdNot(nome, id)) {
+            throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
+        }
+        Categoria categoria = buscarCategoria(request.categoriaId());
+        List<Ingrediente> encontrados = buscarIngredientes(request.ingredientes());
+        produto.atualizar(
+                categoria,
+                nome,
+                request.descricao(),
+                validarPreco(request.preco()),
+                request.ativo(),
+                encontrados,
+                request.imagemUrl());
+        return ProdutoResponse.from(produto);
+    }
+
+    @Transactional
+    public void desativar(Long id) {
+        Produto produto = produtos.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUTO_NAO_ENCONTRADO));
+        produto.desativar();
+    }
+
+    private BigDecimal validarPreco(BigDecimal preco) {
+        if (preco == null || preco.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(ErrorCode.PRECO_INVALIDO);
+        }
+        return preco;
+    }
+
+    private Categoria buscarCategoria(Long categoriaId) {
+        return categorias.findById(categoriaId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORIA_NAO_ENCONTRADA));
+    }
+
+    private List<Ingrediente> buscarIngredientes(List<Long> idsIngredientes) {
+        if (idsIngredientes == null || idsIngredientes.isEmpty()) {
+            throw new BusinessException(ErrorCode.INGREDIENTES_OBRIGATORIOS);
+        }
+        if (idsIngredientes.stream().anyMatch(Objects::isNull)) {
+            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
+        }
+        if (idsIngredientes.stream().distinct().count() != idsIngredientes.size()) {
+            throw new BusinessException(ErrorCode.INGREDIENTE_DUPLICADO);
+        }
+        List<Ingrediente> encontrados = ingredientes.findByIdInAndAtivoTrue(idsIngredientes);
+        if (encontrados.size() != idsIngredientes.size()) {
+            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
+        }
+        return encontrados;
     }
 
     @Transactional(readOnly = true)

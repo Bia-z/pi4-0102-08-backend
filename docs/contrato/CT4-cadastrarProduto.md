@@ -58,6 +58,23 @@ ordenados pelo nome:
 ]
 ```
 
+## Gerenciar itens e ingredientes
+
+Todas as operações de gerenciamento abaixo exigem perfil `ADMIN`. A remoção é
+lógica: o registro permanece para preservar pedidos e históricos associados.
+
+| Recurso | Listar para gerenciamento | Editar | Remover |
+| :--- | :--- | :--- | :--- |
+| Itens/produtos | `GET /api/produtos` | `PUT /api/produtos/{id}` | `DELETE /api/produtos/{id}` |
+| Ingredientes | `GET /api/ingredientes/gerenciamento` | `PUT /api/ingredientes/{id}` | `DELETE /api/ingredientes/{id}` |
+
+O cadastro de ingrediente usa `POST /api/ingredientes` com `{ "nome": "Alho" }`.
+O `PUT` de produto recebe os mesmos campos do cadastro e devolve os IDs dos
+ingredientes associados. O `PUT` de ingrediente recebe `{ "nome": "...",
+"ativo": true }`; essa operação também permite reativar um ingrediente.
+O `GET /api/ingredientes` continua retornando somente os ingredientes ativos
+para uso nos formulários de produto.
+
 ## listarCardapio
 
 | Campo | Valor |

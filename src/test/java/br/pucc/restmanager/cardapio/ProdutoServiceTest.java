@@ -1,6 +1,7 @@
 package br.pucc.restmanager.cardapio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -201,6 +202,29 @@ class ProdutoServiceTest {
         assertEquals(List.of("Bruschetta"),
                 cardapio.get(0).produtos().stream().map(ProdutoResponse::nome).toList());
         assertTrue(cardapio.get(0).produtos().get(0).ativo());
+    }
+
+    @Test
+    void atualizaProdutoIncluindoIngredientesEAtivacao() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente tomate = new Ingrediente("Tomate", true);
+        ReflectionTestUtils.setField(tomate, "id", 1L);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true,
+                java.util.Set.of());
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(java.util.Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(java.util.Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(1L))).thenReturn(List.of(tomate));
+
+        ProdutoResponse response = service.atualizar(10L, new CadastrarProdutoRequest(
+                "Bruschetta atualizada", "Nova descrição", new BigDecimal("28.00"),
+                1L, "imagem.jpg", List.of(1L), false));
+
+        assertEquals("Bruschetta atualizada", response.nome());
+        assertEquals(new BigDecimal("28.00"), response.preco());
+        assertEquals(List.of(1L), response.ingredientes());
+        assertFalse(response.ativo());
     }
 
     private Categoria categoria(Long id, String nome, int ordem, boolean ativo) {

@@ -4,8 +4,10 @@ import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
+import br.pucc.restmanager.usuario.dto.AtualizarUsuarioRequest;
 import br.pucc.restmanager.usuario.dto.CadastrarUsuarioRequest;
 import br.pucc.restmanager.usuario.dto.UsuarioResponse;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -86,6 +88,64 @@ public class UsuarioService {
         return UsuarioResponse.from(usuarios.save(usuario));
     }
 
+    @Transactional(readOnly = true)
+    public List<UsuarioResponse> listar() {
+        return usuarios.findAllByOrderByNomeAsc().stream()
+                .map(UsuarioResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public UsuarioResponse atualizar(Long id, AtualizarUsuarioRequest request) {
+        Usuario usuario = usuarios.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
+        String cpf = normalizarCpf(request.cpf());
+        if (!cpfValido(cpf)) {
+            throw new BusinessException(ErrorCode.CPF_INVALIDO);
+        }
+        if (usuarios.existsByCpfAndIdNot(cpf, id)) {
+            throw new BusinessException(ErrorCode.CPF_DUPLICADO);
+        }
+        String codigo = request.codigo().trim();
+        if (usuarios.existsByCodigoAndIdNot(codigo, id)) {
+            throw new BusinessException(ErrorCode.CODIGO_DUPLICADO);
+        }
+
+        String telefone = normalizarTelefone(request.telefone());
+        String email = normalizarEmail(request.email(), id);
+        Perfil perfil;
+        try {
+            perfil = Perfil.valueOf(request.perfil().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new BusinessException(ErrorCode.PERFIL_INVALIDO);
+        }
+        if (usuario.isAtivo() && usuario.getPerfil() == Perfil.ADMIN
+                && (perfil != Perfil.ADMIN || !request.ativo())
+                && usuarios.countByPerfilAndAtivoTrue(Perfil.ADMIN) <= 1) {
+            throw new BusinessException(ErrorCode.ULTIMO_ADMINISTRADOR_ATIVO);
+        }
+        String senha = request.senha() == null || request.senha().isBlank()
+                ? null
+                : passwordEncoder.encode(request.senha());
+        usuario.atualizar(
+                codigo, request.nome().trim(), email, cpf, telefone, senha, perfil, request.ativo());
+        return UsuarioResponse.from(usuario);
+    }
+
+    @Transactional
+    public void desativar(Long id, String codigoAdministrador) {
+        Usuario usuario = usuarios.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
+        if (usuario.getCodigo().equals(codigoAdministrador)) {
+            throw new BusinessException(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR);
+        }
+        if (usuario.isAtivo() && usuario.getPerfil() == Perfil.ADMIN
+                && usuarios.countByPerfilAndAtivoTrue(Perfil.ADMIN) <= 1) {
+            throw new BusinessException(ErrorCode.ULTIMO_ADMINISTRADOR_ATIVO);
+        }
+        usuario.desativar();
+    }
+
     private String normalizarCpf(String cpf) {
         if (cpf == null || (!cpf.matches("\\d{11}")
                 && !cpf.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"))) {
@@ -137,6 +197,10 @@ public class UsuarioService {
     }
 
     private String normalizarEmail(String email) {
+        return normalizarEmail(email, null);
+    }
+
+    private String normalizarEmail(String email, Long usuarioId) {
         if (email == null || email.isBlank()) {
             return null;
         }
@@ -144,7 +208,10 @@ public class UsuarioService {
         if (normalizado.length() > 160 || !EMAIL_PATTERN.matcher(normalizado).matches()) {
             throw new BusinessException(ErrorCode.EMAIL_INVALIDO);
         }
-        if (usuarios.existsByEmailIgnoreCase(normalizado)) {
+        boolean duplicado = usuarioId == null
+                ? usuarios.existsByEmailIgnoreCase(normalizado)
+                : usuarios.existsByEmailIgnoreCaseAndIdNot(normalizado, usuarioId);
+        if (duplicado) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICADO);
         }
         return normalizado;

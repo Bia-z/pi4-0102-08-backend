@@ -53,4 +53,22 @@ public class Usuario {
     public String getSenha() { return senha; }
     public Perfil getPerfil() { return perfil; }
     public boolean isAtivo() { return ativo; }
+
+    public void atualizar(String codigo, String nome, String email, String cpf,
+                          String telefone, String senha, Perfil perfil, boolean ativo) {
+        this.codigo = codigo;
+        this.nome = nome;
+        this.email = email;
+        this.cpf = cpf;
+        this.telefone = telefone;
+        if (senha != null) {
+            this.senha = senha;
+        }
+        this.perfil = perfil;
+        this.ativo = ativo;
+    }
+
+    public void desativar() {
+        ativo = false;
+    }
 }

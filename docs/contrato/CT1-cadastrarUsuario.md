@@ -52,3 +52,16 @@ número brasileiro válido com DDD (10 ou 11 dígitos, com `+55` opcional).
 | O usuário que chama a API não é Administrador | Erro ACESSO_NEGADO |
 
 A senha é armazenada como hash BCrypt e não é devolvida na resposta.
+
+## Gerenciar funcionários
+
+Todas as operações abaixo exigem perfil `ADMIN`:
+
+| Operação | Endpoint | Comportamento |
+| :--- | :--- | :--- |
+| Listar | `GET /api/usuarios` | Lista ativos e inativos, sem devolver senhas |
+| Editar | `PUT /api/usuarios/{id}` | Atualiza código, dados, perfil e estado; senha em branco mantém a atual |
+| Remover | `DELETE /api/usuarios/{id}` | Desativa o funcionário sem apagar registros históricos |
+
+O administrador autenticado não pode desativar a própria conta, nem desativar ou
+rebaixar o último administrador ativo.

@@ -17,6 +17,7 @@ import br.pucc.restmanager.common.ErrorCode;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
 import br.pucc.restmanager.usuario.dto.CadastrarUsuarioRequest;
+import br.pucc.restmanager.usuario.dto.AtualizarUsuarioRequest;
 import br.pucc.restmanager.usuario.dto.UsuarioResponse;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UsuarioServiceTest {
@@ -164,6 +166,40 @@ class UsuarioServiceTest {
 
         assertEquals(ErrorCode.EMAIL_DUPLICADO, exception.getErro());
         verify(usuarios, never()).save(any(Usuario.class));
+    }
+
+    @Test
+    void atualizaDadosDoFuncionarioMantendoSenhaQuandoNaoInformada() {
+        Usuario usuario = new Usuario(
+                "FUNC001", "Carlos Antigo", null, "52998224725", "11999999999",
+                "hash-atual", Perfil.GARCOM, true);
+        ReflectionTestUtils.setField(usuario, "id", 1L);
+        when(usuarios.findById(1L)).thenReturn(Optional.of(usuario));
+
+        UsuarioResponse response = service.atualizar(1L, new AtualizarUsuarioRequest(
+                "FUNC002", "Carlos Mendes", null, "529.982.247-25", "11988887777",
+                "caixa", true, ""));
+
+        assertEquals("FUNC002", response.codigo());
+        assertEquals("Carlos Mendes", usuario.getNome());
+        assertEquals("11988887777", usuario.getTelefone());
+        assertEquals(Perfil.CAIXA, usuario.getPerfil());
+        assertEquals("hash-atual", usuario.getSenha());
+        assertTrue(usuario.isAtivo());
+    }
+
+    @Test
+    void naoPermiteDesativarPropriaConta() {
+        Usuario administrador = new Usuario(
+                "ADMIN1", "Admin", null, "hash", Perfil.ADMIN, true);
+        ReflectionTestUtils.setField(administrador, "id", 1L);
+        when(usuarios.findById(1L)).thenReturn(Optional.of(administrador));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class, () -> service.desativar(1L, "ADMIN1"));
+
+        assertEquals(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR, exception.getErro());
+        assertTrue(administrador.isAtivo());
     }
 
     private CadastrarUsuarioRequest request(String codigo, String perfil) {

@@ -2,9 +2,10 @@ package br.pucc.restmanager.cardapio.dto;
 
 import br.pucc.restmanager.cardapio.domain.Ingrediente;
 
-public record IngredienteResponse(Long id, String nome) {
+public record IngredienteResponse(Long id, String nome, boolean ativo) {
 
     public static IngredienteResponse from(Ingrediente ingrediente) {
-        return new IngredienteResponse(ingrediente.getId(), ingrediente.getNome());
+        return new IngredienteResponse(
+                ingrediente.getId(), ingrediente.getNome(), ingrediente.isAtivo());
     }
 }

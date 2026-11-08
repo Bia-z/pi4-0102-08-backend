@@ -15,8 +15,18 @@ public class PerfilAccessRules implements AuthorizationManager<RequestAuthorizat
 
     private static final List<Operation> OPERATIONS = List.of(
             operation("POST", "/api/usuarios", Perfil.ADMIN),
+            operation("GET", "/api/usuarios", Perfil.ADMIN),
+            operation("PUT", "/api/usuarios/*", Perfil.ADMIN),
+            operation("DELETE", "/api/usuarios/*", Perfil.ADMIN),
             operation("POST", "/api/produtos", Perfil.ADMIN),
+            operation("GET", "/api/produtos", Perfil.ADMIN),
+            operation("PUT", "/api/produtos/*", Perfil.ADMIN),
+            operation("DELETE", "/api/produtos/*", Perfil.ADMIN),
             operation("GET", "/api/ingredientes", Perfil.ADMIN),
+            operation("GET", "/api/ingredientes/gerenciamento", Perfil.ADMIN),
+            operation("POST", "/api/ingredientes", Perfil.ADMIN),
+            operation("PUT", "/api/ingredientes/*", Perfil.ADMIN),
+            operation("DELETE", "/api/ingredientes/*", Perfil.ADMIN),
             operation("GET", "/api/cardapio",
                     Perfil.ADMIN, Perfil.GARCOM, Perfil.COZINHA, Perfil.CAIXA),
             operation("POST", "/api/mesas", Perfil.ADMIN),

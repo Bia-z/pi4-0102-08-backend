@@ -10,4 +10,11 @@ public interface IngredienteRepository extends JpaRepository<Ingrediente, Long> 
     List<Ingrediente> findByAtivoTrueOrderByNomeAsc();
 
     List<Ingrediente> findByIdInAndAtivoTrue(Collection<Long> ids);
+
+    List<Ingrediente> findAllByOrderByNomeAsc();
+
+    boolean existsByNomeIgnoreCase(String nome);
+
+    boolean existsByNomeIgnoreCaseAndIdNot(String nome, Long id);
+
 }

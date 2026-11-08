@@ -62,7 +62,25 @@ class PerfilAccessRulesTest {
     @Test
     void cadastrarUsuarioEExclusivoDoAdministrador() {
         assertTrue(rules.perfilPermitido("POST", "/api/usuarios", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("GET", "/api/usuarios", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("PUT", "/api/usuarios/1", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("DELETE", "/api/usuarios/1", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/usuarios", Perfil.GARCOM));
+        assertFalse(rules.perfilPermitido("DELETE", "/api/usuarios/1", Perfil.CAIXA));
+    }
+
+    @Test
+    void administradorPodeGerenciarProdutosEIngredientes() {
+        assertTrue(rules.perfilPermitido("GET", "/api/produtos", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("PUT", "/api/produtos/1", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("DELETE", "/api/produtos/1", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("POST", "/api/ingredientes", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido(
+                "GET", "/api/ingredientes/gerenciamento", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("PUT", "/api/ingredientes/1", Perfil.ADMIN));
+        assertTrue(rules.perfilPermitido("DELETE", "/api/ingredientes/1", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("PUT", "/api/produtos/1", Perfil.GARCOM));
+        assertFalse(rules.perfilPermitido("POST", "/api/ingredientes", Perfil.CAIXA));
     }
 
     @Test
