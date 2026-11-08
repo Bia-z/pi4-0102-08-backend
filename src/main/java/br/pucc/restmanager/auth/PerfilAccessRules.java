@@ -31,7 +31,19 @@ public class PerfilAccessRules implements AuthorizationManager<RequestAuthorizat
             operation("POST", "/api/pedidos/*/transferir-mesa", Perfil.ADMIN, Perfil.GARCOM),
             operation("POST", "/api/mesas/*/pagamento/iniciar", Perfil.ADMIN, Perfil.CAIXA),
             operation("POST", "/api/mesas/*/pagamento/cancelar", Perfil.ADMIN, Perfil.CAIXA),
-            operation("POST", "/api/mesas/*/pagamento/processar", Perfil.ADMIN, Perfil.CAIXA));
+            operation("POST", "/api/mesas/*/pagamento/processar", Perfil.ADMIN, Perfil.CAIXA),
+            operation("GET", "/api/caixa/aberto", Perfil.ADMIN, Perfil.CAIXA),
+            operation("POST", "/api/caixa/abrir", Perfil.ADMIN, Perfil.CAIXA),
+            operation("POST", "/api/caixa/fechar", Perfil.ADMIN, Perfil.CAIXA),
+            operation("GET", "/api/caixa/historico", Perfil.ADMIN, Perfil.CAIXA),
+            operation("POST", "/api/caixa/movimentacoes", Perfil.ADMIN, Perfil.CAIXA),
+            operation("GET", "/api/caixa/movimentacoes", Perfil.ADMIN, Perfil.CAIXA),
+            operation("GET", "/api/caixa/relatorios/*", Perfil.ADMIN, Perfil.CAIXA),
+            operation("GET", "/api/caixa/relatorios/*/pdf", Perfil.ADMIN, Perfil.CAIXA),
+            operation("GET", "/api/caixa/configuracao", Perfil.ADMIN, Perfil.CAIXA),
+            operation("PUT", "/api/caixa/configuracao", Perfil.ADMIN),
+            operation("GET", "/api/pedidos/*/comanda", Perfil.ADMIN, Perfil.GARCOM, Perfil.COZINHA),
+            operation("GET", "/api/pedidos/*/comanda/pdf", Perfil.ADMIN, Perfil.GARCOM, Perfil.COZINHA));
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 

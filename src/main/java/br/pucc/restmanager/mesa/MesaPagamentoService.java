@@ -85,6 +85,16 @@ public class MesaPagamentoService {
                 status(StatusMesa.OCUPADA));
     }
 
+    @Transactional
+    public void cancelarPagamento(String codigoOperador) {
+        Usuario operador = usuarios.findByCodigo(codigoOperador)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
+        for (Mesa mesa : mesas.buscarPagamentosIniciadosPorComBloqueio(operador.getId())) {
+            mesa.cancelarPagamento();
+            publicarStatus(mesa, StatusMesa.OCUPADA);
+        }
+    }
+
     private Mesa buscarMesaBloqueada(Long mesaId) {
         return mesas.buscarAtivaPorIdComBloqueio(mesaId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MESA_NAO_ENCONTRADA));

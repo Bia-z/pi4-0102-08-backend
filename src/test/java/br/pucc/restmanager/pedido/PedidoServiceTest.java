@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.pucc.restmanager.cardapio.ProdutoRepository;
+import br.pucc.restmanager.comanda.ImpressaoService;
 import br.pucc.restmanager.cardapio.domain.Categoria;
 import br.pucc.restmanager.cardapio.domain.Produto;
 import br.pucc.restmanager.common.BusinessException;
@@ -63,6 +64,9 @@ class PedidoServiceTest {
     @Mock
     StatusPedidoPublisher statusPedidoPublisher;
 
+    @Mock
+    ImpressaoService impressao;
+
     private PedidoService service;
     private Mesa mesa;
     private Produto produto;
@@ -71,7 +75,8 @@ class PedidoServiceTest {
     @BeforeEach
     void montar() {
         service = new PedidoService(
-                mesas, produtos, usuarios, pedidos, itens, pedidoCriadoPublisher, statusPedidoPublisher);
+                mesas, produtos, usuarios, pedidos, itens, pedidoCriadoPublisher, statusPedidoPublisher,
+                impressao);
         mesa = new Mesa(10, 4);
         ReflectionTestUtils.setField(mesa, "id", 5L);
         produto = new Produto(

@@ -70,14 +70,19 @@ public class PagamentoMesaRepository {
                 BigDecimal.class);
     }
 
+    public void bloquearCaixaAberto() {
+        jdbc.query("SELECT id FROM tb_caixa WHERE status = 'ABERTO' FOR UPDATE",
+                (rs, row) -> rs.getLong("id"));
+    }
+
     public void gravarPagamento(
             Long pedidoId,
             FormaPagamento forma,
             BigDecimal valor,
             BigDecimal troco) {
         jdbc.update("""
-                        INSERT INTO tb_pagamento (pedido_id, forma_pagamento, valor, troco)
-                        VALUES (?, ?, ?, ?)
+                        INSERT INTO tb_pagamento (pedido_id, caixa_id, forma_pagamento, valor, troco)
+                        VALUES (?, (SELECT id FROM tb_caixa WHERE status = 'ABERTO'), ?, ?, ?)
                         """,
                 pedidoId,
                 forma.name(),

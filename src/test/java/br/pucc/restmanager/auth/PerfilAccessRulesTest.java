@@ -89,4 +89,20 @@ class PerfilAccessRulesTest {
         assertTrue(rules.perfilPermitido("GET", "/api/ingredientes", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("GET", "/api/ingredientes", Perfil.GARCOM));
     }
+
+    @Test
+    void caixaPodeOperarTurnoEConsultarRelatorios() {
+        assertTrue(rules.perfilPermitido("POST", "/api/caixa/abrir", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("POST", "/api/caixa/fechar", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("GET", "/api/caixa/relatorios/2026-11-08/pdf", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("GET", "/api/caixa/configuracao", Perfil.CAIXA));
+        assertFalse(rules.perfilPermitido("PUT", "/api/caixa/configuracao", Perfil.CAIXA));
+    }
+
+    @Test
+    void comandaPodeSerConsultadaPelaEquipeDeAtendimento() {
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos/42/comanda", Perfil.COZINHA));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos/42/comanda/pdf", Perfil.GARCOM));
+        assertFalse(rules.perfilPermitido("GET", "/api/pedidos/42/comanda", Perfil.CAIXA));
+    }
 }

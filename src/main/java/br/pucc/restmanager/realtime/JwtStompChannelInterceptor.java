@@ -43,6 +43,8 @@ public class JwtStompChannelInterceptor implements ChannelInterceptor {
             if (accessor.getUser() == null
                     || (!"/topic/mesas".equals(destination)
                             && !("/topic/cozinha".equals(destination)
+                                    && podeAcessarCozinha(accessor))
+                            && !("/topic/comandas".equals(destination)
                                     && podeAcessarCozinha(accessor)))) {
                 throw new AccessDeniedException("Inscrição STOMP não autorizada");
             }

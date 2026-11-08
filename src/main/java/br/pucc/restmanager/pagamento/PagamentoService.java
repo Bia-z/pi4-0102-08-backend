@@ -83,6 +83,7 @@ public class PagamentoService {
 
         BigDecimal troco = totalPago.subtract(total).setScale(2, RoundingMode.HALF_UP);
         List<SaldoPedido> saldos = distribuirTotal(pedidos, total, subtotal);
+        pagamentos.bloquearCaixaAberto();
         gravarEntradas(entradas, saldos, troco);
         pagamentos.marcarPedidosPagos(mesaId);
         pagamentos.liberarMesa(mesaId);

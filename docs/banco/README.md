@@ -220,11 +220,20 @@ erDiagram
 | `tb_caixa.status` | ABERTO, FECHADO (só um caixa ABERTO por vez) |
 | `tb_movimentacao_caixa.tipo` | SANGRIA, REFORCO |
 
+## Operações de caixa e impressão
+
+- `POST /api/caixa/abrir`, `GET /api/caixa/aberto` e `POST /api/caixa/fechar` controlam o turno. O fechamento compara o dinheiro contado com a abertura, pagamentos em dinheiro líquidos de troco e movimentações.
+- `POST /api/caixa/movimentacoes` registra sangria ou reforço; `GET /api/caixa/historico` lista fechamentos.
+- `GET /api/caixa/relatorios/{AAAA-MM-DD}` retorna os totais por forma de pagamento e movimentações do dia; o sufixo `/pdf` gera o arquivo PDF.
+- `GET /api/caixa/configuracao` consulta as opções e `PUT` atualiza nome, taxa de serviço (0 a 100%) e impressão automática.
+- `GET /api/pedidos/{pedidoId}/comanda` retorna os itens imprimíveis e `/pdf` gera a comanda. Quando a impressão automática está habilitada, a cozinha recebe a comanda em `/topic/comandas` ao iniciar o preparo.
+
+O schema ainda não mantém histórico de impressões/reimpressões da comanda; o endpoint gera a comanda a partir do pedido existente. Os turnos aceitos pelo backend são `MANHA`, `TARDE` e `NOITE`.
+
 ## Pendências (a combinar)
 
 | Item | Com quem |
 | :--- | :--- |
 | Confirmar o status por item + status geral do pedido | Heitor (E3) e Vitória (E5) |
-| Tabelas de cancelamento (E12), reserva (E13) e comanda (E15) | Vitória |
-| Campos de turno e fechamento do caixa | Nathalia (E10/E11) |
-| `caixa_id` e `troco` em `tb_pagamento` | Beatriz (E7) |
+| Tabelas de cancelamento (E12), reserva (E13) e histórico de impressão da comanda (E15) | Vitória |
+| Definição formal de turnos para o caixa (E10/E11) | Nathalia |

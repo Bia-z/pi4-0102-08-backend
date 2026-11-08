@@ -2,6 +2,7 @@ package br.pucc.restmanager.pedido;
 
 import br.pucc.restmanager.cardapio.ProdutoRepository;
 import br.pucc.restmanager.cardapio.domain.Produto;
+import br.pucc.restmanager.comanda.ImpressaoService;
 import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import br.pucc.restmanager.mesa.MesaRepository;
@@ -25,6 +26,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class PedidoService {
@@ -39,6 +42,7 @@ public class PedidoService {
     private final ItemPedidoRepository itens;
     private final PedidoCriadoPublisher pedidoCriadoPublisher;
     private final StatusPedidoPublisher statusPedidoPublisher;
+    private final ImpressaoService impressao;
 
     public PedidoService(
             MesaRepository mesas,
@@ -47,7 +51,8 @@ public class PedidoService {
             PedidoRepository pedidos,
             ItemPedidoRepository itens,
             PedidoCriadoPublisher pedidoCriadoPublisher,
-            StatusPedidoPublisher statusPedidoPublisher) {
+            StatusPedidoPublisher statusPedidoPublisher,
+            ImpressaoService impressao) {
         this.mesas = mesas;
         this.produtos = produtos;
         this.usuarios = usuarios;
@@ -55,6 +60,7 @@ public class PedidoService {
         this.itens = itens;
         this.pedidoCriadoPublisher = pedidoCriadoPublisher;
         this.statusPedidoPublisher = statusPedidoPublisher;
+        this.impressao = impressao;
     }
 
     @Transactional
@@ -125,9 +131,24 @@ public class PedidoService {
         }
         ItemPedido item = itens.findByIdAndPedidoId(itemId, pedidoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_PEDIDO_NAO_ENCONTRADO));
+        boolean imprimirComanda = item.getStatus() == StatusItem.AGUARDANDO
+                && novoStatus == StatusItem.EM_PREPARO;
         item.atualizarStatus(novoStatus);
         ItemPedido salvo = itens.save(item);
         statusPedidoPublisher.publicar(salvo);
+        if (imprimirComanda) {
+            Runnable publicarComanda = () -> impressao.publicarSeConfigurado(pedidoId);
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        publicarComanda.run();
+                    }
+                });
+            } else {
+                publicarComanda.run();
+            }
+        }
         return StatusItemResponse.from(salvo);
     }
 

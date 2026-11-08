@@ -18,6 +18,14 @@ public interface MesaRepository extends JpaRepository<Mesa, Long> {
     @Query("SELECT m FROM Mesa m WHERE m.id = :id AND m.ativo = true")
     Optional<Mesa> buscarAtivaPorIdComBloqueio(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT m FROM Mesa m
+            WHERE m.ativo = true AND m.status = br.pucc.restmanager.mesa.domain.StatusMesa.EM_PAGAMENTO
+              AND m.pagamentoIniciadoPor.id = :operadorId
+            """)
+    List<Mesa> buscarPagamentosIniciadosPorComBloqueio(@Param("operadorId") Long operadorId);
+
     @Query(value = """
             SELECT m.id AS "mesaId",
                    m.numero AS numero,
