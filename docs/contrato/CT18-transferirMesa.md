@@ -32,6 +32,7 @@
 | O pedido a ser transferido não se encontra em aberto | Erro PEDIDO_NAO_EM_ABERTO |
 | A mesa de origem ou de destino está em pagamento | Erro MESA_EM_PAGAMENTO |
 | A mesa de destino não existe ou está inativa | Erro MESA_NAO_ENCONTRADA |
+| O usuário não é Administrador, Garçom ou Caixa | Erro ACESSO_NEGADO |
 
 A transferência altera somente `mesa_id` do pedido, preservando o pedido, garçom,
 data, itens e observações. A mesa de destino passa a ocupada. A mesa de origem só

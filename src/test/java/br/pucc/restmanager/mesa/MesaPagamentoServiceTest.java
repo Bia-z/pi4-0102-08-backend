@@ -16,6 +16,7 @@ import br.pucc.restmanager.realtime.StatusMesaPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,12 +74,34 @@ class MesaPagamentoServiceTest {
     }
 
     @Test
+    void permiteAoMesmoOperadorRetomarPagamentoSemReiniciar() {
+        var iniciadoEm = LocalDateTime.of(2026, 11, 8, 17, 0);
+        ReflectionTestUtils.setField(mesa, "status", StatusMesa.EM_PAGAMENTO);
+        ReflectionTestUtils.setField(mesa, "pagamentoIniciadoPor", operador);
+        ReflectionTestUtils.setField(mesa, "pagamentoIniciadoEm", iniciadoEm);
+        when(usuarios.findByCodigo("cx1")).thenReturn(Optional.of(operador));
+
+        var resposta = service.iniciarPagamento(5L, "cx1");
+
+        assertEquals(5L, resposta.mesaId());
+        assertEquals(8L, resposta.iniciadoPor());
+        assertEquals(iniciadoEm, resposta.iniciadoEm());
+        assertEquals(StatusMesa.EM_PAGAMENTO, mesa.getStatus());
+        verify(pedidos, never()).listarAbertos(null, null, null, 5L, false);
+        verify(publisher, never()).publicarStatusAtualizado(5L, 10, "em_pagamento");
+    }
+
+    @Test
     void recusaIniciarPagamentoQuandoMesaJaEstaEmPagamento() {
         ReflectionTestUtils.setField(mesa, "status", StatusMesa.EM_PAGAMENTO);
+        ReflectionTestUtils.setField(mesa, "pagamentoIniciadoPor", operador);
+        Usuario outroOperador = new Usuario("cx2", "Outro caixa", null, "hash", Perfil.CAIXA, true);
+        ReflectionTestUtils.setField(outroOperador, "id", 9L);
+        when(usuarios.findByCodigo("cx2")).thenReturn(Optional.of(outroOperador));
 
         BusinessException exception = assertThrows(
                 BusinessException.class,
-                () -> service.iniciarPagamento(5L, "cx1"));
+                () -> service.iniciarPagamento(5L, "cx2"));
 
         assertEquals(ErrorCode.MESA_JA_EM_PAGAMENTO, exception.getErro());
         verify(pedidos, never()).listarAbertos(null, null, null, 5L, false);

@@ -32,3 +32,7 @@
 | A mesa não está ocupada, ou seja, não há pedido em aberto para pagar | Erro MESA_SEM_PEDIDO_ABERTO |
 | A mesa já está em pagamento aberto por outro operador de caixa | Erro MESA_JA_EM_PAGAMENTO |
 | O usuário que chama a API não é do Caixa nem Administrador | Erro ACESSO_NEGADO |
+
+Se a mesa já estiver em pagamento pelo mesmo operador autenticado, a operação é
+idempotente: retorna os dados do pagamento existente sem reiniciar o tempo ou
+alterar o estado. Isso permite retomar a tela após reconectar ou entrar novamente.

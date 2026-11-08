@@ -23,6 +23,8 @@ class PerfilAccessRulesTest {
                 "GET", "/api/pedidos/42/comprovante-pdf", Perfil.CAIXA));
         assertTrue(rules.perfilPermitido(
                 "POST", "/api/pedidos/42/transferir-mesa", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido(
+                "POST", "/api/pedidos/42/transferir-mesa", Perfil.CAIXA));
     }
 
     @Test

@@ -40,7 +40,13 @@ public class MesaPagamentoService {
     @Transactional
     public PagamentoIniciadoResponse iniciarPagamento(Long mesaId, String codigoOperador) {
         Mesa mesa = buscarMesaBloqueada(mesaId);
+        Usuario operador = usuarios.findByCodigo(codigoOperador)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
         if (mesa.getStatus() == StatusMesa.EM_PAGAMENTO) {
+            if (mesa.getPagamentoIniciadoPor() != null
+                    && mesa.getPagamentoIniciadoPor().getId().equals(operador.getId())) {
+                return respostaPagamentoIniciado(mesa, operador, mesa.getPagamentoIniciadoEm());
+            }
             throw new BusinessException(ErrorCode.MESA_JA_EM_PAGAMENTO);
         }
         if (mesa.getStatus() != StatusMesa.OCUPADA
@@ -48,17 +54,10 @@ public class MesaPagamentoService {
             throw new BusinessException(ErrorCode.MESA_SEM_PEDIDO_ABERTO);
         }
 
-        Usuario operador = usuarios.findByCodigo(codigoOperador)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
         LocalDateTime iniciadoEm = LocalDateTime.now();
         mesa.iniciarPagamento(operador, iniciadoEm);
         publicarStatus(mesa, StatusMesa.EM_PAGAMENTO);
-        return new PagamentoIniciadoResponse(
-                mesa.getId(),
-                mesa.getNumero(),
-                status(StatusMesa.EM_PAGAMENTO),
-                operador.getId(),
-                iniciadoEm);
+        return respostaPagamentoIniciado(mesa, operador, iniciadoEm);
     }
 
     @Transactional
@@ -117,5 +116,17 @@ public class MesaPagamentoService {
 
     private String status(StatusMesa status) {
         return status.name().toLowerCase(Locale.ROOT);
+    }
+
+    private PagamentoIniciadoResponse respostaPagamentoIniciado(
+            Mesa mesa,
+            Usuario operador,
+            LocalDateTime iniciadoEm) {
+        return new PagamentoIniciadoResponse(
+                mesa.getId(),
+                mesa.getNumero(),
+                status(StatusMesa.EM_PAGAMENTO),
+                operador.getId(),
+                iniciadoEm);
     }
 }
