@@ -32,7 +32,7 @@ class ComprovantePdfGeneratorTest {
         assertTrue(conteudo.contains("Horario: 06/11/2026 12:00"));
         assertTrue(conteudo.contains("2 x Produto ativo"));
         assertTrue(conteudo.contains("Subtotal: R$ 20,00"));
-        assertTrue(conteudo.contains("Taxa de servico (10,00%): R$ 2,00"));
+        assertTrue(conteudo.contains("Taxa de servico \\(10,00%\\): R$ 2,00"));
         assertTrue(conteudo.contains("TOTAL: R$ 22,00"));
         assertTrue(conteudo.contains("PIX: R$ 22,00"));
         assertTrue(!conteudo.contains("cancelado"));
@@ -53,7 +53,7 @@ class ComprovantePdfGeneratorTest {
 
         String conteudo = new String(generator.gerar(dados), Charset.forName("windows-1252"));
 
-        assertTrue(conteudo.contains("Taxa de servico (10,00%): R$ 2,00"));
+        assertTrue(conteudo.contains("Taxa de servico \\(10,00%\\): R$ 2,00"));
         assertTrue(conteudo.contains("Desconto: -R$ 1,00"));
         assertTrue(conteudo.contains("TOTAL: R$ 21,00"));
         assertTrue(conteudo.contains("DINHEIRO: R$ 24,00"));

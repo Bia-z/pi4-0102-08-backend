@@ -15,10 +15,14 @@ public record PedidoListResponse(
         Long garcomId,
         String status,
         BigDecimal valorTotal,
+        BigDecimal taxaServicoPercentual,
         LocalDateTime dataCriacao,
         List<Item> itens) {
 
-    public static PedidoListResponse from(Pedido pedido, boolean cozinha) {
+    public static PedidoListResponse from(
+            Pedido pedido,
+            boolean cozinha,
+            BigDecimal taxaServicoPercentual) {
         List<Item> itens = pedido.getItens().stream()
                 .filter(item -> !cozinha || item.getStatus() == StatusItem.AGUARDANDO
                         || item.getStatus() == StatusItem.EM_PREPARO)
@@ -31,6 +35,7 @@ public record PedidoListResponse(
                 pedido.getGarcom().getId(),
                 pedido.getStatus().name().toLowerCase(Locale.ROOT),
                 pedido.getValorTotal(),
+                taxaServicoPercentual,
                 pedido.getDataCriacao(),
                 itens);
     }
@@ -40,6 +45,7 @@ public record PedidoListResponse(
             Long produtoId,
             String produtoNome,
             int quantidade,
+            BigDecimal precoUnitario,
             String observacao,
             String status) {
 
@@ -49,6 +55,7 @@ public record PedidoListResponse(
                     item.getProduto().getId(),
                     item.getProduto().getNome(),
                     item.getQuantidade(),
+                    item.getPrecoUnitario(),
                     item.getObservacao(),
                     item.getStatus().name().toLowerCase(Locale.ROOT));
         }

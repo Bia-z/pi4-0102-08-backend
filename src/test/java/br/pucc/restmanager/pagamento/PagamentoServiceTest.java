@@ -192,6 +192,58 @@ class PagamentoServiceTest {
     }
 
     @Test
+    void recusaDescontoNegativoSemGravarPagamento() {
+        when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
+                new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
+        when(pagamentos.buscarPedidosAbertos(5L)).thenReturn(List.of(
+                new PagamentoMesaRepository.PedidoPagamento(101L, new BigDecimal("100.00"))));
+        ProcessarPagamentoRequest request = new ProcessarPagamentoRequest(
+                List.of(new FormaPagamentoRequest("dinheiro", new BigDecimal("110.00"))),
+                new BigDecimal("-0.01"));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.processarPagamento(5L, request));
+
+        assertEquals(ErrorCode.DESCONTO_INVALIDO, exception.getErro());
+        verificarPagamentoNaoAlterado();
+    }
+
+    @Test
+    void recusaFormaDePagamentoDesconhecidaSemGravarPagamento() {
+        when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
+                new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
+        when(pagamentos.buscarPedidosAbertos(5L)).thenReturn(List.of(
+                new PagamentoMesaRepository.PedidoPagamento(101L, new BigDecimal("100.00"))));
+        when(pagamentos.taxaServicoPercentual()).thenReturn(new BigDecimal("10.00"));
+        ProcessarPagamentoRequest request = request("cheque", "110.00");
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.processarPagamento(5L, request));
+
+        assertEquals(ErrorCode.PAGAMENTO_INVALIDO, exception.getErro());
+        verificarPagamentoNaoAlterado();
+    }
+
+    @Test
+    void recusaValorDePagamentoComMaisDeDuasCasasSemGravarPagamento() {
+        when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
+                new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
+        when(pagamentos.buscarPedidosAbertos(5L)).thenReturn(List.of(
+                new PagamentoMesaRepository.PedidoPagamento(101L, new BigDecimal("100.00"))));
+        when(pagamentos.taxaServicoPercentual()).thenReturn(new BigDecimal("10.00"));
+        ProcessarPagamentoRequest request = request("pix", "110.001");
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service.processarPagamento(5L, request));
+
+        assertEquals(ErrorCode.PAGAMENTO_INVALIDO, exception.getErro());
+        verificarPagamentoNaoAlterado();
+    }
+
+    @Test
     void fechaContaComPagamentoDivididoEPublicaMesaDisponivel() {
         when(pagamentos.bloquearMesa(5L)).thenReturn(Optional.of(
                 new PagamentoMesaRepository.MesaPagamento(5L, 10, "EM_PAGAMENTO")));
@@ -222,5 +274,16 @@ class PagamentoServiceTest {
         return new ProcessarPagamentoRequest(
                 List.of(new FormaPagamentoRequest(forma, new BigDecimal(valor))),
                 BigDecimal.ZERO);
+    }
+
+    private void verificarPagamentoNaoAlterado() {
+        verify(pagamentos, never()).gravarPagamento(
+                org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any());
+        verify(pagamentos, never()).marcarPedidosPagos(5L);
+        verify(pagamentos, never()).liberarMesa(5L);
+        verify(statusMesaPublisher, never()).publicarDisponivel(5L, 10);
     }
 }

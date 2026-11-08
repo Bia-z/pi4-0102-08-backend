@@ -101,11 +101,17 @@ public class PedidoService {
             Long garcomId,
             Long mesaId,
             boolean cozinha) {
-        return pedidos.listarAbertos(status, statusItem, garcomId, mesaId, cozinha).stream()
+        List<Pedido> pedidosAbertos = pedidos.listarAbertos(
+                status, statusItem, garcomId, mesaId, cozinha);
+        if (pedidosAbertos.isEmpty()) {
+            return List.of();
+        }
+        BigDecimal taxaServicoPercentual = pedidos.taxaServicoPercentual();
+        return pedidosAbertos.stream()
                 .filter(pedido -> !cozinha || pedido.getItens().stream()
                         .anyMatch(item -> item.getStatus() == StatusItem.AGUARDANDO
                                 || item.getStatus() == StatusItem.EM_PREPARO))
-                .map(pedido -> PedidoListResponse.from(pedido, cozinha))
+                .map(pedido -> PedidoListResponse.from(pedido, cozinha, taxaServicoPercentual))
                 .toList();
     }
 

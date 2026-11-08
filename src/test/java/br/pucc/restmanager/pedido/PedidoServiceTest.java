@@ -216,6 +216,7 @@ class PedidoServiceTest {
     @Test
     void listaPedidosComFiltrosNaOrdemDoRepositorio() {
         Pedido pedido = pedidoParaListagem(StatusItem.AGUARDANDO, StatusPedido.AGUARDANDO);
+        when(pedidos.taxaServicoPercentual()).thenReturn(new BigDecimal("10.00"));
         when(pedidos.listarAbertos(
                 StatusPedido.AGUARDANDO, StatusItem.AGUARDANDO, 2L, 5L, false))
                 .thenReturn(List.of(pedido));
@@ -226,6 +227,8 @@ class PedidoServiceTest {
         assertEquals(1, resposta.size());
         assertEquals(5L, resposta.get(0).mesaId());
         assertEquals(2L, resposta.get(0).garcomId());
+        assertEquals(new BigDecimal("10.00"), resposta.get(0).taxaServicoPercentual());
+        assertEquals(new BigDecimal("20.00"), resposta.get(0).itens().get(0).precoUnitario());
         assertEquals("aguardando", resposta.get(0).itens().get(0).status());
         verify(pedidos).listarAbertos(
                 StatusPedido.AGUARDANDO, StatusItem.AGUARDANDO, 2L, 5L, false);

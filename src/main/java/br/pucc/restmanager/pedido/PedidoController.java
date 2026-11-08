@@ -1,5 +1,7 @@
 package br.pucc.restmanager.pedido;
 
+import br.pucc.restmanager.common.BusinessException;
+import br.pucc.restmanager.common.ErrorCode;
 import br.pucc.restmanager.pedido.domain.StatusItem;
 import br.pucc.restmanager.pedido.domain.StatusPedido;
 import br.pucc.restmanager.pedido.dto.AtualizarStatusItemRequest;
@@ -42,6 +44,11 @@ public class PedidoController {
             Authentication authentication) {
         boolean cozinha = authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_COZINHA"));
+        boolean caixa = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_CAIXA"));
+        if (caixa && mesaId == null) {
+            throw new BusinessException(ErrorCode.ACESSO_NEGADO);
+        }
         return pedidos.listarPedidos(
                 converterStatus(status, StatusPedido.class),
                 converterStatus(statusItem, StatusItem.class),

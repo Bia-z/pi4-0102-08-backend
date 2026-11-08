@@ -50,11 +50,11 @@ class PerfilAccessRulesTest {
     }
 
     @Test
-    void listarPedidosEPermitidoParaAdminGarcomECozinha() {
+    void listarPedidosEPermitidoParaEquipeIncluindoCaixa() {
         assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.ADMIN));
         assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.GARCOM));
         assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.COZINHA));
-        assertFalse(rules.perfilPermitido("GET", "/api/pedidos", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos", Perfil.CAIXA));
     }
 
     @Test

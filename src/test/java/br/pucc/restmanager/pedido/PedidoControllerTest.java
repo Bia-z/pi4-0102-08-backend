@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import br.pucc.restmanager.common.BusinessException;
+import br.pucc.restmanager.common.ErrorCode;
 import br.pucc.restmanager.pedido.domain.StatusItem;
 import br.pucc.restmanager.pedido.domain.StatusPedido;
 import br.pucc.restmanager.pedido.dto.AtualizarStatusItemRequest;
@@ -57,6 +59,16 @@ class PedidoControllerTest {
                 2L,
                 5L,
                 true);
+    }
+
+    @Test
+    void exigeMesaIdNaListagemDoCaixa() {
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> controller.listarPedidos(null, null, null, null, authentication("ROLE_CAIXA")));
+
+        assertEquals(ErrorCode.ACESSO_NEGADO, exception.getErro());
+        verify(service, never()).listarPedidos(null, null, null, null, false);
     }
 
     @Test

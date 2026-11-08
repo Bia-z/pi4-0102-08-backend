@@ -92,4 +92,16 @@ public class Mesa {
             status = StatusMesa.OCUPADA;
         }
     }
+
+    public void iniciarPagamento(Usuario operador, LocalDateTime iniciadoEm) {
+        status = StatusMesa.EM_PAGAMENTO;
+        pagamentoIniciadoPor = operador;
+        pagamentoIniciadoEm = iniciadoEm;
+    }
+
+    public void cancelarPagamento() {
+        status = StatusMesa.OCUPADA;
+        pagamentoIniciadoPor = null;
+        pagamentoIniciadoEm = null;
+    }
 }
