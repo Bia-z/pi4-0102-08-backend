@@ -5,6 +5,7 @@ import br.pucc.restmanager.auth.ApiAuthenticationEntryPoint;
 import br.pucc.restmanager.auth.JwtAuthFilter;
 import br.pucc.restmanager.auth.JwtService;
 import br.pucc.restmanager.auth.PerfilAccessRules;
+import br.pucc.restmanager.usuario.UsuarioRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     public SecurityFilterChain filtros(
             HttpSecurity http,
             JwtService jwtService,
+            UsuarioRepository usuarios,
             PerfilAccessRules perfilAccessRules,
             AuthenticationEntryPoint authenticationEntryPoint,
             AccessDeniedHandler accessDeniedHandler) throws Exception {
@@ -42,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .anyRequest().access(perfilAccessRules))
-                .addFilterBefore(new JwtAuthFilter(jwtService, authenticationEntryPoint),
+                .addFilterBefore(new JwtAuthFilter(jwtService, authenticationEntryPoint, usuarios),
                         UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

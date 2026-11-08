@@ -9,7 +9,9 @@ import br.pucc.restmanager.cardapio.dto.ProdutoResponse;
 import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -70,7 +72,10 @@ public class ProdutoService {
             throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
         }
         Categoria categoria = buscarCategoria(request.categoriaId());
-        List<Ingrediente> encontrados = buscarIngredientes(request.ingredientes());
+        // Na edição, ingredientes que o produto já tem continuam valendo mesmo se foram
+        // desativados depois; só ingrediente NOVO precisa estar ativo.
+        List<Ingrediente> encontrados =
+                buscarIngredientes(request.ingredientes(), produto.getIngredientes());
         produto.atualizar(
                 categoria,
                 nome,
@@ -102,6 +107,11 @@ public class ProdutoService {
     }
 
     private List<Ingrediente> buscarIngredientes(List<Long> idsIngredientes) {
+        return buscarIngredientes(idsIngredientes, Set.of());
+    }
+
+    private List<Ingrediente> buscarIngredientes(
+            List<Long> idsIngredientes, Set<Ingrediente> jaVinculados) {
         if (idsIngredientes == null || idsIngredientes.isEmpty()) {
             throw new BusinessException(ErrorCode.INGREDIENTES_OBRIGATORIOS);
         }
@@ -111,11 +121,22 @@ public class ProdutoService {
         if (idsIngredientes.stream().distinct().count() != idsIngredientes.size()) {
             throw new BusinessException(ErrorCode.INGREDIENTE_DUPLICADO);
         }
-        List<Ingrediente> encontrados = ingredientes.findByIdInAndAtivoTrue(idsIngredientes);
-        if (encontrados.size() != idsIngredientes.size()) {
+        Map<Long, Ingrediente> vinculadosPorId = jaVinculados.stream()
+                .collect(Collectors.toMap(Ingrediente::getId, ingrediente -> ingrediente));
+        List<Long> idsNovos = idsIngredientes.stream()
+                .filter(id -> !vinculadosPorId.containsKey(id))
+                .toList();
+        List<Ingrediente> ativosNovos =
+                idsNovos.isEmpty() ? List.of() : ingredientes.findByIdInAndAtivoTrue(idsNovos);
+        if (ativosNovos.size() != idsNovos.size()) {
             throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
         }
-        return encontrados;
+        List<Ingrediente> resultado = new ArrayList<>(ativosNovos);
+        idsIngredientes.stream()
+                .filter(vinculadosPorId::containsKey)
+                .map(vinculadosPorId::get)
+                .forEach(resultado::add);
+        return resultado;
     }
 
     @Transactional(readOnly = true)

@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -80,29 +81,29 @@ public class Produto {
         if (caminho != null && !caminho.isBlank()) {
             imagens.add(new ImagemProduto(this, caminho, true, 0));
         }
+    }
 
-        public void atualizar(
-                Categoria categoria,
-                String nome,
-                String descricao,
-                BigDecimal preco,
-                boolean ativo,
-                Collection<Ingrediente> ingredientes,
-                String imagemUrl) {
-            this.categoria = categoria;
-            this.nome = nome;
-            this.descricao = descricao;
-            this.preco = preco;
-            this.ativo = ativo;
-            this.ingredientes.clear();
-            this.ingredientes.addAll(ingredientes);
-            this.imagens.clear();
-            adicionarImagemPrincipal(imagemUrl);
-        }
+    public void atualizar(
+            Categoria categoria,
+            String nome,
+            String descricao,
+            BigDecimal preco,
+            boolean ativo,
+            Collection<Ingrediente> ingredientes,
+            String imagemUrl) {
+        this.categoria = categoria;
+        this.nome = nome;
+        this.descricao = descricao;
+        this.preco = preco;
+        this.ativo = ativo;
+        this.ingredientes.clear();
+        this.ingredientes.addAll(ingredientes);
+        this.imagens.clear();
+        adicionarImagemPrincipal(imagemUrl);
+    }
 
-        public void desativar() {
-            ativo = false;
-        }
+    public void desativar() {
+        ativo = false;
     }
 
     public Long getId() {

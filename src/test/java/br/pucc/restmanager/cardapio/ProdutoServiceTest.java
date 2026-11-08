@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -227,6 +228,46 @@ class ProdutoServiceTest {
         assertFalse(response.ativo());
     }
 
+    @Test
+    void mantemIngredienteJaVinculadoMesmoDesativadoAoAtualizarProduto() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente tomateDesativado = new Ingrediente("Tomate", false);
+        ReflectionTestUtils.setField(tomateDesativado, "id", 1L);
+        Ingrediente manjericao = new Ingrediente("Manjericão", true);
+        ReflectionTestUtils.setField(manjericao, "id", 2L);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true,
+                Set.of(tomateDesativado));
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(2L))).thenReturn(List.of(manjericao));
+
+        ProdutoResponse response = service.atualizar(10L, new CadastrarProdutoRequest(
+                "Bruschetta", null, new BigDecimal("22.00"),
+                1L, null, List.of(1L, 2L), true));
+
+        assertEquals(Set.of(1L, 2L), Set.copyOf(response.ingredientes()));
+    }
+
+    @Test
+    void recusaIngredienteNovoDesativadoAoAtualizarProduto() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true, Set.of());
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(3L))).thenReturn(List.of());
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.atualizar(10L, new CadastrarProdutoRequest(
+                        "Bruschetta", null, new BigDecimal("22.00"),
+                        1L, null, List.of(3L), true)));
+
+        assertEquals(ErrorCode.INGREDIENTE_NAO_ENCONTRADO, exception.getErro());
+    }
+
     private Categoria categoria(Long id, String nome, int ordem, boolean ativo) {
         Categoria categoria = new Categoria(nome, ordem, ativo);
         ReflectionTestUtils.setField(categoria, "id", id);
@@ -234,13 +275,13 @@ class ProdutoServiceTest {
     }
 
     private CadastrarProdutoRequest request(String nome, BigDecimal preco, Long categoriaId,
-            String imagemUrl) {
+                                            String imagemUrl) {
         return new CadastrarProdutoRequest(
                 nome, null, preco, categoriaId, imagemUrl, List.of(1L), true);
     }
 
     private CadastrarProdutoRequest request(String nome, BigDecimal preco, Long categoriaId,
-            String imagemUrl, List<Long> idsIngredientes) {
+                                            String imagemUrl, List<Long> idsIngredientes) {
         return new CadastrarProdutoRequest(
                 nome, null, preco, categoriaId, imagemUrl, idsIngredientes, true);
     }

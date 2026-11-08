@@ -178,7 +178,7 @@ class UsuarioServiceTest {
 
         UsuarioResponse response = service.atualizar(1L, new AtualizarUsuarioRequest(
                 "FUNC002", "Carlos Mendes", null, "529.982.247-25", "11988887777",
-                "caixa", true, ""));
+                "caixa", true, ""), "ADMIN1");
 
         assertEquals("FUNC002", response.codigo());
         assertEquals("Carlos Mendes", usuario.getNome());
@@ -197,6 +197,23 @@ class UsuarioServiceTest {
 
         BusinessException exception = assertThrows(
                 BusinessException.class, () -> service.desativar(1L, "ADMIN1"));
+
+        assertEquals(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR, exception.getErro());
+        assertTrue(administrador.isAtivo());
+    }
+
+    @Test
+    void naoPermiteDesativarPropriaContaPelaEdicao() {
+        Usuario administrador = new Usuario(
+                "ADMIN1", "Admin", null, "52998224725", "11999999999",
+                "hash", Perfil.ADMIN, true);
+        ReflectionTestUtils.setField(administrador, "id", 1L);
+        when(usuarios.findById(1L)).thenReturn(Optional.of(administrador));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.atualizar(1L, new AtualizarUsuarioRequest(
+                        "ADMIN1", "Admin", null, "529.982.247-25", "11999999999",
+                        "admin", false, ""), "ADMIN1"));
 
         assertEquals(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR, exception.getErro());
         assertTrue(administrador.isAtivo());

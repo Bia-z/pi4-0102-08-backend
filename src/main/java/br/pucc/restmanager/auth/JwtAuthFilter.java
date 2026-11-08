@@ -1,5 +1,6 @@
 package br.pucc.restmanager.auth;
 
+import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -22,10 +23,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final AuthenticationEntryPoint authenticationEntryPoint;
+    private final UsuarioRepository usuarios;
 
-    public JwtAuthFilter(JwtService jwtService, AuthenticationEntryPoint authenticationEntryPoint) {
+    public JwtAuthFilter(
+            JwtService jwtService,
+            AuthenticationEntryPoint authenticationEntryPoint,
+            UsuarioRepository usuarios) {
         this.jwtService = jwtService;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.usuarios = usuarios;
     }
 
     @Override
@@ -59,6 +65,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             Perfil perfil = Perfil.valueOf(perfilToken.toUpperCase(Locale.ROOT));
+
+            // O token dura horas, mas o administrador pode desativar o funcionário ou trocar o
+            // perfil dele nesse meio tempo. Por isso o banco é consultado a cada requisição:
+            // usuário removido, inativo ou com perfil diferente do token perde o acesso na hora.
+            usuarios.findByCodigo(codigo)
+                    .filter(usuario -> usuario.isAtivo() && usuario.getPerfil() == perfil)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Usuário inexistente, inativo ou com perfil alterado"));
+
             authentication = UsernamePasswordAuthenticationToken.authenticated(
                     codigo,
                     null,

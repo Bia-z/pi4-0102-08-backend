@@ -1,15 +1,19 @@
 package br.pucc.restmanager.auth;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.pucc.restmanager.config.SecurityConfig;
+import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Perfil;
 import br.pucc.restmanager.usuario.domain.Usuario;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +33,9 @@ class SecurityAuthorizationTest {
 
     @Autowired
     private JwtService jwtService;
+
+    @MockBean
+    private UsuarioRepository usuarios;
 
     @Test
     void recusaOperacaoSemTokenComErroDaFicha() throws Exception {
@@ -74,9 +81,43 @@ class SecurityAuthorizationTest {
                 .andExpect(content().string("cadastrado"));
     }
 
+    @Test
+    void recusaTokenDeUsuarioDesativadoDepoisDeLogar() throws Exception {
+        String token = bearer(Perfil.GARCOM);
+        when(usuarios.findByCodigo("T001")).thenReturn(Optional.of(
+                new Usuario("T001", "Teste", "teste@restmanager.com", "hash", Perfil.GARCOM, false)));
+
+        mockMvc.perform(post("/api/pedidos").header("Authorization", token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json("{\"erro\":\"TOKEN_INVALIDO\"}"));
+    }
+
+    @Test
+    void recusaTokenDeUsuarioQueTeveOPerfilAlterado() throws Exception {
+        String token = bearer(Perfil.GARCOM);
+        when(usuarios.findByCodigo("T001")).thenReturn(Optional.of(
+                new Usuario("T001", "Teste", "teste@restmanager.com", "hash", Perfil.CAIXA, true)));
+
+        mockMvc.perform(post("/api/pedidos").header("Authorization", token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json("{\"erro\":\"TOKEN_INVALIDO\"}"));
+    }
+
+    @Test
+    void recusaTokenDeUsuarioQueNaoExisteMais() throws Exception {
+        String token = bearer(Perfil.GARCOM);
+        when(usuarios.findByCodigo("T001")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/pedidos").header("Authorization", token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json("{\"erro\":\"TOKEN_INVALIDO\"}"));
+    }
+
+    // Gera o token e deixa o "banco" (mock) com o mesmo usuário, ativo e com o mesmo perfil
     private String bearer(Perfil perfil) {
         Usuario usuario = new Usuario("T001", "Teste", "teste@restmanager.com",
                 "hash", perfil, true);
+        when(usuarios.findByCodigo("T001")).thenReturn(Optional.of(usuario));
         return "Bearer " + jwtService.gerarToken(usuario);
     }
 
