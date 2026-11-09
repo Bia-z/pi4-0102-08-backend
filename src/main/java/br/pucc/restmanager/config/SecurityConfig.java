@@ -6,6 +6,7 @@ import br.pucc.restmanager.auth.JwtAuthFilter;
 import br.pucc.restmanager.auth.JwtService;
 import br.pucc.restmanager.auth.PerfilAccessRules;
 import br.pucc.restmanager.usuario.UsuarioRepository;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -41,6 +42,9 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(a -> a
+                        // Erros de validação (400) e exceções não tratadas (500) passam pelo /error;
+                        // sem liberar isso eles viravam 401 e o frontend deslogava a pessoa.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/ws", "/ws/**").permitAll()
                         .anyRequest().access(perfilAccessRules))
