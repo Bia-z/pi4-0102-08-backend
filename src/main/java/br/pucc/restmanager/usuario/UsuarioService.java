@@ -1,154 +1,224 @@
-package br.pucc.restmanager.cardapio;
+package br.pucc.restmanager.usuario;
 
-import br.pucc.restmanager.cardapio.domain.Categoria;
-import br.pucc.restmanager.cardapio.domain.Ingrediente;
-import br.pucc.restmanager.cardapio.domain.Produto;
-import br.pucc.restmanager.cardapio.dto.CadastrarProdutoRequest;
-import br.pucc.restmanager.cardapio.dto.CardapioCategoriaResponse;
-import br.pucc.restmanager.cardapio.dto.ProdutoResponse;
 import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
-import java.math.BigDecimal;
-import java.util.ArrayList;
+import br.pucc.restmanager.usuario.domain.Perfil;
+import br.pucc.restmanager.usuario.domain.Usuario;
+import br.pucc.restmanager.usuario.dto.AtualizarUsuarioRequest;
+import br.pucc.restmanager.usuario.dto.CadastrarUsuarioRequest;
+import br.pucc.restmanager.usuario.dto.UsuarioResponse;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ProdutoService {
+public class UsuarioService {
 
-    private final ProdutoRepository produtos;
-    private final CategoriaRepository categorias;
-    private final IngredienteRepository ingredientes;
+    private static final Pattern EMAIL_PATTERN =
+            Pattern.compile("^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+"
+                    + "(?:\\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@"
+                    + "(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+"
+                    + "[A-Za-z]{2,63}$");
+    private static final Pattern PHONE_FORMAT_PATTERN =
+            Pattern.compile("^[+0-9() .-]+$");
+    private static final Set<String> BRAZILIAN_AREA_CODES = Set.of(
+            "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "21", "22", "24", "27", "28",
+            "31", "32", "33", "34", "35", "37", "38",
+            "41", "42", "43", "44", "45", "46", "47", "48", "49",
+            "51", "53", "54", "55",
+            "61", "62", "63", "64", "65", "66", "67", "68", "69",
+            "71", "73", "74", "75", "77", "79",
+            "81", "82", "83", "84", "85", "86", "87", "88", "89",
+            "91", "92", "93", "94", "95", "96", "97", "98", "99");
 
-    public ProdutoService(
-            ProdutoRepository produtos,
-            CategoriaRepository categorias,
-            IngredienteRepository ingredientes) {
-        this.produtos = produtos;
-        this.categorias = categorias;
-        this.ingredientes = ingredientes;
+    private final UsuarioRepository usuarios;
+    private final PasswordEncoder passwordEncoder;
+    private final CodigoFuncionarioGenerator codigoGenerator;
+
+    public UsuarioService(
+            UsuarioRepository usuarios,
+            PasswordEncoder passwordEncoder,
+            CodigoFuncionarioGenerator codigoGenerator) {
+        this.usuarios = usuarios;
+        this.passwordEncoder = passwordEncoder;
+        this.codigoGenerator = codigoGenerator;
     }
 
     @Transactional
-    public ProdutoResponse cadastrar(CadastrarProdutoRequest request) {
-        BigDecimal preco = validarPreco(request.preco());
-        String nome = request.nome().trim();
-        if (produtos.existsByNomeIgnoreCase(nome)) {
-            throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
+    public UsuarioResponse cadastrar(CadastrarUsuarioRequest request) {
+        String cpf = normalizarCpf(request.cpf());
+        if (!cpfValido(cpf)) {
+            throw new BusinessException(ErrorCode.CPF_INVALIDO);
+        }
+        if (usuarios.existsByCpf(cpf)) {
+            throw new BusinessException(ErrorCode.CPF_DUPLICADO);
         }
 
-        Categoria categoria = buscarCategoria(request.categoriaId());
-        List<Ingrediente> encontrados = buscarIngredientes(request.ingredientes());
+        String telefone = normalizarTelefone(request.telefone());
+        String email = normalizarEmail(request.email());
 
-        Produto produto = new Produto(
-                categoria,
-                nome,
-                request.descricao(),
-                preco,
-                request.ativo(),
-                Set.copyOf(encontrados));
-        produto.adicionarImagemPrincipal(request.imagemUrl());
-        return ProdutoResponse.from(produtos.save(produto));
+        Perfil perfil;
+        try {
+            perfil = Perfil.valueOf(request.perfil().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new BusinessException(ErrorCode.PERFIL_INVALIDO);
+        }
+
+        String codigo = request.codigo() == null || request.codigo().isBlank()
+                ? codigoGenerator.gerar()
+                : request.codigo().trim();
+        if (usuarios.findByCodigo(codigo).isPresent()) {
+            throw new BusinessException(ErrorCode.CODIGO_DUPLICADO);
+        }
+
+        Usuario usuario = new Usuario(
+                codigo,
+                request.nome().trim(),
+                email,
+                cpf,
+                telefone,
+                passwordEncoder.encode(request.senha()),
+                perfil,
+                true);
+        return UsuarioResponse.from(usuarios.save(usuario));
     }
 
     @Transactional(readOnly = true)
-    public List<ProdutoResponse> listar() {
-        return produtos.findAllByOrderByNomeAsc().stream()
-                .map(ProdutoResponse::from)
+    public List<UsuarioResponse> listar() {
+        return usuarios.findAllByOrderByNomeAsc().stream()
+                .map(UsuarioResponse::from)
                 .toList();
     }
 
     @Transactional
-    public ProdutoResponse atualizar(Long id, CadastrarProdutoRequest request) {
-        Produto produto = produtos.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUTO_NAO_ENCONTRADO));
-        String nome = request.nome().trim();
-        if (produtos.existsByNomeIgnoreCaseAndIdNot(nome, id)) {
-            throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
+    public UsuarioResponse atualizar(
+            Long id, AtualizarUsuarioRequest request, String codigoAdministrador) {
+        Usuario usuario = usuarios.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
+        // Mesma regra do DELETE: o administrador não pode se desativar pela edição também
+        if (!request.ativo() && usuario.getCodigo().equals(codigoAdministrador)) {
+            throw new BusinessException(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR);
         }
-        Categoria categoria = buscarCategoria(request.categoriaId());
-        // Na edição, ingredientes que o produto já tem continuam valendo mesmo se foram
-        // desativados depois; só ingrediente NOVO precisa estar ativo.
-        List<Ingrediente> encontrados =
-                buscarIngredientes(request.ingredientes(), produto.getIngredientes());
-        produto.atualizar(
-                categoria,
-                nome,
-                request.descricao(),
-                validarPreco(request.preco()),
-                request.ativo(),
-                encontrados,
-                request.imagemUrl());
-        return ProdutoResponse.from(produto);
+        String cpf = normalizarCpf(request.cpf());
+        if (!cpfValido(cpf)) {
+            throw new BusinessException(ErrorCode.CPF_INVALIDO);
+        }
+        if (usuarios.existsByCpfAndIdNot(cpf, id)) {
+            throw new BusinessException(ErrorCode.CPF_DUPLICADO);
+        }
+        String codigo = request.codigo().trim();
+        if (usuarios.existsByCodigoAndIdNot(codigo, id)) {
+            throw new BusinessException(ErrorCode.CODIGO_DUPLICADO);
+        }
+
+        String telefone = normalizarTelefone(request.telefone());
+        String email = normalizarEmail(request.email(), id);
+        Perfil perfil;
+        try {
+            perfil = Perfil.valueOf(request.perfil().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new BusinessException(ErrorCode.PERFIL_INVALIDO);
+        }
+        if (usuario.isAtivo() && usuario.getPerfil() == Perfil.ADMIN
+                && (perfil != Perfil.ADMIN || !request.ativo())
+                && usuarios.countByPerfilAndAtivoTrue(Perfil.ADMIN) <= 1) {
+            throw new BusinessException(ErrorCode.ULTIMO_ADMINISTRADOR_ATIVO);
+        }
+        String senha = request.senha() == null || request.senha().isBlank()
+                ? null
+                : passwordEncoder.encode(request.senha());
+        usuario.atualizar(
+                codigo, request.nome().trim(), email, cpf, telefone, senha, perfil, request.ativo());
+        return UsuarioResponse.from(usuario);
     }
 
     @Transactional
-    public void desativar(Long id) {
-        Produto produto = produtos.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUTO_NAO_ENCONTRADO));
-        produto.desativar();
+    public void desativar(Long id, String codigoAdministrador) {
+        Usuario usuario = usuarios.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
+        if (usuario.getCodigo().equals(codigoAdministrador)) {
+            throw new BusinessException(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR);
+        }
+        if (usuario.isAtivo() && usuario.getPerfil() == Perfil.ADMIN
+                && usuarios.countByPerfilAndAtivoTrue(Perfil.ADMIN) <= 1) {
+            throw new BusinessException(ErrorCode.ULTIMO_ADMINISTRADOR_ATIVO);
+        }
+        usuario.desativar();
     }
 
-    private BigDecimal validarPreco(BigDecimal preco) {
-        if (preco == null || preco.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ErrorCode.PRECO_INVALIDO);
+    private String normalizarCpf(String cpf) {
+        if (cpf == null || (!cpf.matches("\\d{11}")
+                && !cpf.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}"))) {
+            return "";
         }
-        return preco;
+        return cpf.replaceAll("[.\\-]", "");
     }
 
-    private Categoria buscarCategoria(Long categoriaId) {
-        return categorias.findById(categoriaId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORIA_NAO_ENCONTRADA));
+    private boolean cpfValido(String cpf) {
+        if (!cpf.matches("\\d{11}") || cpf.chars().distinct().count() == 1) {
+            return false;
+        }
+        int primeiroDigito = calcularDigitoCpf(cpf, 9);
+        int segundoDigito = calcularDigitoCpf(cpf, 10);
+        return cpf.charAt(9) - '0' == primeiroDigito
+                && cpf.charAt(10) - '0' == segundoDigito;
     }
 
-    private List<Ingrediente> buscarIngredientes(List<Long> idsIngredientes) {
-        return buscarIngredientes(idsIngredientes, Set.of());
+    private int calcularDigitoCpf(String cpf, int quantidadeDigitosBase) {
+        int soma = 0;
+        for (int i = 0; i < quantidadeDigitosBase; i++) {
+            soma += (cpf.charAt(i) - '0') * (quantidadeDigitosBase + 1 - i);
+        }
+        int resto = soma % 11;
+        return resto < 2 ? 0 : 11 - resto;
     }
 
-    private List<Ingrediente> buscarIngredientes(
-            List<Long> idsIngredientes, Set<Ingrediente> jaVinculados) {
-        if (idsIngredientes == null || idsIngredientes.isEmpty()) {
-            throw new BusinessException(ErrorCode.INGREDIENTES_OBRIGATORIOS);
+    private String normalizarTelefone(String telefone) {
+        if (telefone == null || !PHONE_FORMAT_PATTERN.matcher(telefone).matches()) {
+            throw new BusinessException(ErrorCode.TELEFONE_INVALIDO);
         }
-        if (idsIngredientes.stream().anyMatch(Objects::isNull)) {
-            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
+        String digitos = telefone.replaceAll("\\D", "");
+        if (digitos.startsWith("55") && (digitos.length() == 12 || digitos.length() == 13)) {
+            digitos = digitos.substring(2);
         }
-        if (idsIngredientes.stream().distinct().count() != idsIngredientes.size()) {
-            throw new BusinessException(ErrorCode.INGREDIENTE_DUPLICADO);
+        if (digitos.length() != 10 && digitos.length() != 11) {
+            throw new BusinessException(ErrorCode.TELEFONE_INVALIDO);
         }
-        Map<Long, Ingrediente> vinculadosPorId = jaVinculados.stream()
-                .collect(Collectors.toMap(Ingrediente::getId, ingrediente -> ingrediente));
-        List<Long> idsNovos = idsIngredientes.stream()
-                .filter(id -> !vinculadosPorId.containsKey(id))
-                .toList();
-        List<Ingrediente> ativosNovos =
-                idsNovos.isEmpty() ? List.of() : ingredientes.findByIdInAndAtivoTrue(idsNovos);
-        if (ativosNovos.size() != idsNovos.size()) {
-            throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
+        String ddd = digitos.substring(0, 2);
+        char primeiroDigitoAssinante = digitos.charAt(2);
+        boolean formatoValido = BRAZILIAN_AREA_CODES.contains(ddd)
+                && (digitos.length() == 11
+                ? primeiroDigitoAssinante == '9'
+                : primeiroDigitoAssinante >= '2' && primeiroDigitoAssinante <= '5');
+        if (!formatoValido) {
+            throw new BusinessException(ErrorCode.TELEFONE_INVALIDO);
         }
-        List<Ingrediente> resultado = new ArrayList<>(ativosNovos);
-        idsIngredientes.stream()
-                .filter(vinculadosPorId::containsKey)
-                .map(vinculadosPorId::get)
-                .forEach(resultado::add);
-        return resultado;
+        return digitos;
     }
 
-    @Transactional(readOnly = true)
-    public List<CardapioCategoriaResponse> listarCardapio() {
-        return categorias.findByAtivoTrueOrderByOrdemAscNomeAsc().stream()
-                .map(categoria -> new CardapioCategoriaResponse(
-                        categoria.getId(),
-                        categoria.getNome(),
-                        produtos.findByCategoriaIdAndAtivoTrueOrderByNomeAsc(categoria.getId())
-                                .stream()
-                                .map(ProdutoResponse::from)
-                                .collect(Collectors.toList())))
-                .toList();
+    private String normalizarEmail(String email) {
+        return normalizarEmail(email, null);
+    }
+
+    private String normalizarEmail(String email, Long usuarioId) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        String normalizado = email.trim().toLowerCase(Locale.ROOT);
+        if (normalizado.length() > 160 || !EMAIL_PATTERN.matcher(normalizado).matches()) {
+            throw new BusinessException(ErrorCode.EMAIL_INVALIDO);
+        }
+        boolean duplicado = usuarioId == null
+                ? usuarios.existsByEmailIgnoreCase(normalizado)
+                : usuarios.existsByEmailIgnoreCaseAndIdNot(normalizado, usuarioId);
+        if (duplicado) {
+            throw new BusinessException(ErrorCode.EMAIL_DUPLICADO);
+        }
+        return normalizado;
     }
 }
