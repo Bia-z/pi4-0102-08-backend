@@ -1,6 +1,5 @@
 package br.pucc.restmanager.config;
 
-import br.pucc.restmanager.realtime.JwtStompChannelInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;

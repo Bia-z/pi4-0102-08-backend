@@ -28,6 +28,8 @@ Canais WebSocket (STOMP) do sistema:
 | `/topic/pedidos` | CT11 `statusPedidoAtualizado` | Painéis do Garçom, da Cozinha e do Caixa |
 | `/topic/mesas` | CT21 `statusMesaAtualizado` | Painéis do Garçom e do Caixa |
 
+A inscrição em `/topic/mesas` e `/topic/pedidos` vale para qualquer usuário autenticado; `/topic/cozinha` e `/topic/comandas` ficam restritos à Cozinha e ao Administrador.
+
 **Alternativas consideradas:**
 - Atualização manual da página: descartada porque depende da ação do usuário e pode atrasar a visualização dos pedidos pela cozinha.
 - Requisições HTTP periódicas (polling): não foi escolhida porque a cozinha precisaria consultar o backend repetidamente para verificar a chegada de novos pedidos, mesmo quando não houvesse alterações.

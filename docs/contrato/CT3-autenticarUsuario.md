@@ -22,6 +22,9 @@
 | token | texto | sim | eyJhbGciOiJIUzI1NiIsInR5cCI6Ik... |
 | tipoToken | texto | sim | Bearer |
 | perfil | um de: admin, garcom, cozinha, caixa | sim | garcom |
+| usuarioId | inteiro | sim | 2 |
+
+O `usuarioId` é o identificador do funcionário. O Frontend o guarda na sessão para enviar o `garcomId` em `criarPedido` (CT7) e para filtrar `listarPedidos` (CT22) pelo garçom logado.
 
 ### Erros
 

@@ -39,17 +39,25 @@ public class JwtStompChannelInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             accessor.setUser(authenticate(accessor));
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            String destination = accessor.getDestination();
-            if (accessor.getUser() == null
-                    || (!"/topic/mesas".equals(destination)
-                            && !("/topic/cozinha".equals(destination)
-                                    && podeAcessarCozinha(accessor))
-                            && !("/topic/comandas".equals(destination)
-                                    && podeAcessarCozinha(accessor)))) {
+            if (!podeAssinar(accessor, accessor.getDestination())) {
                 throw new AccessDeniedException("Inscrição STOMP não autorizada");
             }
         }
         return message;
+    }
+
+    // /topic/mesas (CT21) e /topic/pedidos (CT11) são para qualquer usuário autenticado:
+    // Garçom, Cozinha e Caixa acompanham os dois. /topic/cozinha (CT9) e /topic/comandas
+    // continuam restritos à Cozinha e ao Administrador.
+    private boolean podeAssinar(StompHeaderAccessor accessor, String destination) {
+        if (accessor.getUser() == null || destination == null) {
+            return false;
+        }
+        return switch (destination) {
+            case "/topic/mesas", "/topic/pedidos" -> true;
+            case "/topic/cozinha", "/topic/comandas" -> podeAcessarCozinha(accessor);
+            default -> false;
+        };
     }
 
     private boolean podeAcessarCozinha(StompHeaderAccessor accessor) {
