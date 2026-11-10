@@ -23,7 +23,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 class AuthServiceTest {
 
     @Mock
-    UsuarioRepository usuarios; // banco "de mentira": sem Postgres
+    UsuarioRepository usuarios;
 
     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     JwtService jwt = new JwtService("segredo-de-teste-com-mais-de-32-caracteres-ok", 60);

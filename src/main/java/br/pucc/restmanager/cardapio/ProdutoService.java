@@ -72,8 +72,6 @@ public class ProdutoService {
             throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
         }
         Categoria categoria = buscarCategoria(request.categoriaId());
-        // Na edição, ingredientes que o produto já tem continuam valendo mesmo se foram
-        // desativados depois; só ingrediente NOVO precisa estar ativo.
         List<Ingrediente> encontrados =
                 buscarIngredientes(request.ingredientes(), produto.getIngredientes());
         produto.atualizar(

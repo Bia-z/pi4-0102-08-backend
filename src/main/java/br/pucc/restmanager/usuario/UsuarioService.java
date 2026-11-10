@@ -100,7 +100,6 @@ public class UsuarioService {
             Long id, AtualizarUsuarioRequest request, String codigoAdministrador) {
         Usuario usuario = usuarios.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USUARIO_NAO_ENCONTRADO));
-        // Mesma regra do DELETE: o administrador não pode se desativar pela edição também
         if (!request.ativo() && usuario.getCodigo().equals(codigoAdministrador)) {
             throw new BusinessException(ErrorCode.ADMINISTRADOR_NAO_PODE_SE_DESATIVAR);
         }

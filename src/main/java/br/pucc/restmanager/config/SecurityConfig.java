@@ -42,8 +42,6 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(a -> a
-                        // Erros de validação (400) e exceções não tratadas (500) passam pelo /error;
-                        // sem liberar isso eles viravam 401 e o frontend deslogava a pessoa.
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/ws", "/ws/**").permitAll()

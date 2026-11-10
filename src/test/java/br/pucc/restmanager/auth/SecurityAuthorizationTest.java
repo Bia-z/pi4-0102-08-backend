@@ -113,7 +113,6 @@ class SecurityAuthorizationTest {
                 .andExpect(content().json("{\"erro\":\"TOKEN_INVALIDO\"}"));
     }
 
-    // Gera o token e deixa o "banco" (mock) com o mesmo usuário, ativo e com o mesmo perfil
     private String bearer(Perfil perfil) {
         Usuario usuario = new Usuario("T001", "Teste", "teste@restmanager.com",
                 "hash", perfil, true);

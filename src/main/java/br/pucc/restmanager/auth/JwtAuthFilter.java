@@ -66,9 +66,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             Perfil perfil = Perfil.valueOf(perfilToken.toUpperCase(Locale.ROOT));
 
-            // O token dura horas, mas o administrador pode desativar o funcionário ou trocar o
-            // perfil dele nesse meio tempo. Por isso o banco é consultado a cada requisição:
-            // usuário removido, inativo ou com perfil diferente do token perde o acesso na hora.
             usuarios.findByCodigo(codigo)
                     .filter(usuario -> usuario.isAtivo() && usuario.getPerfil() == perfil)
                     .orElseThrow(() -> new IllegalArgumentException(
