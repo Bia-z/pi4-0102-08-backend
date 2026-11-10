@@ -10,6 +10,7 @@ import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,8 +73,9 @@ public class ProdutoService {
             throw new BusinessException(ErrorCode.PRODUTO_DUPLICADO);
         }
         Categoria categoria = buscarCategoria(request.categoriaId());
-        List<Ingrediente> encontrados =
-                buscarIngredientes(request.ingredientes(), produto.getIngredientes());
+        Collection<Ingrediente> encontrados = request.ingredientes() == null
+                ? produto.getIngredientes()
+                : buscarIngredientes(request.ingredientes(), produto.getIngredientes());
         produto.atualizar(
                 categoria,
                 nome,
@@ -111,7 +113,7 @@ public class ProdutoService {
     private List<Ingrediente> buscarIngredientes(
             List<Long> idsIngredientes, Set<Ingrediente> jaVinculados) {
         if (idsIngredientes == null || idsIngredientes.isEmpty()) {
-            throw new BusinessException(ErrorCode.INGREDIENTES_OBRIGATORIOS);
+            return List.of();
         }
         if (idsIngredientes.stream().anyMatch(Objects::isNull)) {
             throw new BusinessException(ErrorCode.INGREDIENTE_NAO_ENCONTRADO);
