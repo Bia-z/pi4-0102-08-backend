@@ -4,6 +4,7 @@ import br.pucc.restmanager.pedido.domain.Pedido;
 import br.pucc.restmanager.pedido.domain.StatusItem;
 import br.pucc.restmanager.pedido.domain.StatusPedido;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,9 +12,23 @@ import org.springframework.data.repository.query.Param;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    @Query(value = "SELECT taxa_servico_percentual FROM tb_configuracao WHERE id = 1",
-            nativeQuery = true)
+    @Query(value = """
+            SELECT CASE WHEN taxa_servico_ativa THEN taxa_servico_percentual ELSE 0 END
+            FROM tb_configuracao WHERE id = 1
+            """, nativeQuery = true)
     BigDecimal taxaServicoPercentual();
+
+    @Query("""
+            select distinct p from Pedido p
+            join fetch p.mesa
+            join fetch p.garcom
+            left join fetch p.itens i
+            left join fetch i.produto
+            where p.dataCriacao >= :inicio and p.dataCriacao < :fim
+            order by p.dataCriacao desc, p.id desc
+            """)
+    List<Pedido> buscarCriadosEntre(
+            @Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 
     @Query("""
             select distinct p from Pedido p

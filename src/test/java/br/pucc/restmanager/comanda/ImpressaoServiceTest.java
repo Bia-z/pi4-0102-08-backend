@@ -1,6 +1,9 @@
 package br.pucc.restmanager.comanda;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,19 +46,61 @@ class ImpressaoServiceTest {
     }
 
     @Test
-    void publicaComandaNaCozinhaQuandoOpcaoEstaHabilitada() {
-        when(configuracoes.buscar()).thenReturn(new ConfiguracaoResponse("Restaurante", null, true));
-        when(comandas.obter(7L)).thenReturn(comanda());
+    void publicaComandaUnicaQuandoOPrimeiroItemEAceito() {
+        when(configuracoes.buscar()).thenReturn(configuracao(true, true));
+        when(comandas.obter(7L)).thenReturn(comanda("em_preparo", "aguardando"));
         var service = new ImpressaoService(comandas, configuracoes, messaging);
 
-        service.publicarSeConfigurado(7L);
+        service.publicarSeConfigurado(7L, 1L);
 
-        verify(messaging).convertAndSend("/topic/comandas", comanda());
+        verify(messaging).convertAndSend("/topic/comandas", comanda("em_preparo", "aguardando"));
+    }
+
+    @Test
+    void naoRepeteComandaUnicaQuandoOutroItemEAceito() {
+        when(configuracoes.buscar()).thenReturn(configuracao(true, true));
+        when(comandas.obter(7L)).thenReturn(comanda("em_preparo", "em_preparo"));
+        var service = new ImpressaoService(comandas, configuracoes, messaging);
+
+        service.publicarSeConfigurado(7L, 2L);
+
+        verify(messaging, never()).convertAndSend(anyString(), any(Object.class));
+    }
+
+    @Test
+    void publicaSomenteOItemAceitoQuandoComandaNaoEUnica() {
+        when(configuracoes.buscar()).thenReturn(configuracao(true, false));
+        when(comandas.obter(7L)).thenReturn(comanda("em_preparo", "em_preparo"));
+        var service = new ImpressaoService(comandas, configuracoes, messaging);
+
+        service.publicarSeConfigurado(7L, 2L);
+
+        verify(messaging).convertAndSend(
+                "/topic/comandas", comanda("em_preparo", "em_preparo").somenteItem(2L));
+    }
+
+    @Test
+    void naoPublicaQuandoImpressaoEstaDesligada() {
+        when(configuracoes.buscar()).thenReturn(configuracao(false, true));
+        var service = new ImpressaoService(comandas, configuracoes, messaging);
+
+        service.publicarSeConfigurado(7L, 1L);
+
+        verify(messaging, never()).convertAndSend(anyString(), any(Object.class));
+    }
+
+    private ConfiguracaoResponse configuracao(boolean imprimir, boolean comandaUnica) {
+        return new ConfiguracaoResponse("Restaurante", null, true, imprimir, comandaUnica, false);
     }
 
     private ComandaResumoResponse comanda() {
+        return comanda("aguardando", "aguardando");
+    }
+
+    private ComandaResumoResponse comanda(String statusSuco, String statusBolo) {
         return new ComandaResumoResponse(
                 7L, 12, "Garcom", LocalDateTime.of(2026, 11, 8, 12, 30),
-                List.of(new ComandaResumoResponse.Item("Suco", 2, "Sem gelo", "aguardando")));
+                List.of(new ComandaResumoResponse.Item(1L, "Suco", 2, "Sem gelo", statusSuco),
+                        new ComandaResumoResponse.Item(2L, "Bolo", 1, null, statusBolo)));
     }
 }

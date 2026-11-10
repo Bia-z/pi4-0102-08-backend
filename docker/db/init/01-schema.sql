@@ -167,6 +167,9 @@ CREATE TABLE tb_configuracao (
     nome_restaurante            VARCHAR(120) NOT NULL DEFAULT 'RestManager',
     taxa_servico_percentual     NUMERIC(5,2) NOT NULL DEFAULT 10.00,
     imprimir_comanda_ao_aceitar BOOLEAN      NOT NULL DEFAULT TRUE,
+    taxa_servico_ativa          BOOLEAN      NOT NULL DEFAULT TRUE,
+    comanda_unica               BOOLEAN      NOT NULL DEFAULT TRUE,
+    imprimir_comprovante_ao_fechar BOOLEAN   NOT NULL DEFAULT FALSE,
     CONSTRAINT ck_configuracao_unica CHECK (id = 1),
     CONSTRAINT ck_configuracao_taxa  CHECK (taxa_servico_percentual BETWEEN 0 AND 100)
 );

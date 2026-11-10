@@ -137,7 +137,7 @@ public class PedidoService {
         ItemPedido salvo = itens.save(item);
         statusPedidoPublisher.publicar(salvo);
         if (imprimirComanda) {
-            Runnable publicarComanda = () -> impressao.publicarSeConfigurado(pedidoId);
+            Runnable publicarComanda = () -> impressao.publicarSeConfigurado(pedidoId, itemId);
             if (TransactionSynchronizationManager.isSynchronizationActive()) {
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                     @Override

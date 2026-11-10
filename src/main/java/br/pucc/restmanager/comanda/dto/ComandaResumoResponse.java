@@ -14,7 +14,13 @@ public record ComandaResumoResponse(
         itens = List.copyOf(itens);
     }
 
+    public ComandaResumoResponse somenteItem(Long itemId) {
+        return new ComandaResumoResponse(pedidoId, numeroMesa, nomeGarcom, criadaEm,
+                itens.stream().filter(item -> item.itemId().equals(itemId)).toList());
+    }
+
     public record Item(
+            Long itemId,
             String nome,
             int quantidade,
             String observacao,
