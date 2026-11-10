@@ -15,7 +15,6 @@ import br.pucc.restmanager.usuario.domain.Usuario;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,8 +49,7 @@ class PedidoCriadoPublisherTest {
                 "Prato feito",
                 null,
                 new BigDecimal("20.00"),
-                true,
-                Set.of());
+                true);
         Pedido pedido = new Pedido(mesa, garcom, new BigDecimal("22.00"));
         ReflectionTestUtils.setField(pedido, "id", 101L);
         ReflectionTestUtils.setField(
@@ -104,8 +102,7 @@ class PedidoCriadoPublisherTest {
                 "Prato feito",
                 null,
                 new BigDecimal("20.00"),
-                true,
-                Set.of());
+                true);
         Pedido pedido = new Pedido(mesa, garcom, new BigDecimal("22.00"));
         ReflectionTestUtils.setField(pedido, "id", 101L);
         pedido.adicionarItem(new ItemPedido(produto, 1, null));

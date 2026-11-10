@@ -86,7 +86,7 @@ class StatusPedidoPublisherTest {
         ItemPedido item = new ItemPedido(
                 new br.pucc.restmanager.cardapio.domain.Produto(
                         new br.pucc.restmanager.cardapio.domain.Categoria("Pratos", 1, true),
-                        "Prato feito", null, new BigDecimal("20.00"), true, java.util.Set.of()),
+                        "Prato feito", null, new BigDecimal("20.00"), true),
                 1,
                 null);
         ReflectionTestUtils.setField(item, "id", 201L);

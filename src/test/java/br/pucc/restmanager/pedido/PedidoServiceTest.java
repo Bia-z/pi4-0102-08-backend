@@ -84,8 +84,7 @@ class PedidoServiceTest {
                 "Prato feito",
                 null,
                 new BigDecimal("20.00"),
-                true,
-                java.util.Set.of());
+                true);
         ReflectionTestUtils.setField(produto, "id", 8L);
         garcom = new Usuario("g1", "Garcom", null, "hash", Perfil.GARCOM, true);
         ReflectionTestUtils.setField(garcom, "id", 2L);
@@ -191,8 +190,7 @@ class PedidoServiceTest {
                 "Prato inativo",
                 null,
                 new BigDecimal("20.00"),
-                false,
-                java.util.Set.of());
+                false);
         when(produtos.findById(8L)).thenReturn(Optional.of(inativo));
 
         BusinessException exception = assertThrows(

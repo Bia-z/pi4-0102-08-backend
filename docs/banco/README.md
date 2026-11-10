@@ -83,8 +83,6 @@ erDiagram
     tb_usuario ||--o{ tb_transferencia_mesa : "usuario_id"
     tb_usuario |o--o{ tb_mesa : "pagamento_iniciado_por"
     tb_categoria ||--o{ tb_produto : "categoria_id"
-    tb_produto ||--o{ tb_produto_ingrediente : ""
-    tb_ingrediente ||--o{ tb_produto_ingrediente : ""
     tb_produto ||--o{ tb_imagem_produto : ""
     tb_produto ||--o{ tb_item_pedido : "produto_id"
     tb_mesa ||--o{ tb_pedido : "mesa_id"
@@ -128,15 +126,6 @@ erDiagram
         numeric preco
         boolean ativo
         timestamp criado_em
-    }
-    tb_ingrediente {
-        bigint id PK
-        varchar nome UK
-        boolean ativo
-    }
-    tb_produto_ingrediente {
-        bigint produto_id PK
-        bigint ingrediente_id PK
     }
     tb_imagem_produto {
         bigint id PK

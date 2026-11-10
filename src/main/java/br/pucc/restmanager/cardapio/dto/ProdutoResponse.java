@@ -3,7 +3,6 @@ package br.pucc.restmanager.cardapio.dto;
 import br.pucc.restmanager.cardapio.domain.Produto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record ProdutoResponse(
         Long id,
@@ -13,8 +12,7 @@ public record ProdutoResponse(
         Long categoriaId,
         String imagemUrl,
         boolean ativo,
-        LocalDateTime criadoEm,
-        List<Long> ingredientes) {
+        LocalDateTime criadoEm) {
 
     public static ProdutoResponse from(Produto produto) {
         return new ProdutoResponse(
@@ -25,7 +23,6 @@ public record ProdutoResponse(
                 produto.getCategoria().getId(),
                 produto.getImagemUrl(),
                 produto.isAtivo(),
-                produto.getCriadoEm(),
-                produto.getIngredientes().stream().map(ingrediente -> ingrediente.getId()).toList());
+                produto.getCriadoEm());
     }
 }

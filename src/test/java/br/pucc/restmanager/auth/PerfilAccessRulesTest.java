@@ -70,17 +70,11 @@ class PerfilAccessRulesTest {
     }
 
     @Test
-    void administradorPodeGerenciarProdutosEIngredientes() {
+    void administradorPodeGerenciarProdutos() {
         assertTrue(rules.perfilPermitido("GET", "/api/produtos", Perfil.ADMIN));
         assertTrue(rules.perfilPermitido("PUT", "/api/produtos/1", Perfil.ADMIN));
         assertTrue(rules.perfilPermitido("DELETE", "/api/produtos/1", Perfil.ADMIN));
-        assertTrue(rules.perfilPermitido("POST", "/api/ingredientes", Perfil.ADMIN));
-        assertTrue(rules.perfilPermitido(
-                "GET", "/api/ingredientes/gerenciamento", Perfil.ADMIN));
-        assertTrue(rules.perfilPermitido("PUT", "/api/ingredientes/1", Perfil.ADMIN));
-        assertTrue(rules.perfilPermitido("DELETE", "/api/ingredientes/1", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("PUT", "/api/produtos/1", Perfil.GARCOM));
-        assertFalse(rules.perfilPermitido("POST", "/api/ingredientes", Perfil.CAIXA));
     }
 
     @Test
@@ -102,12 +96,6 @@ class PerfilAccessRulesTest {
         assertTrue(rules.perfilPermitido("GET", "/api/mesas/mapa", Perfil.GARCOM));
         assertTrue(rules.perfilPermitido("GET", "/api/mesas/mapa", Perfil.CAIXA));
         assertFalse(rules.perfilPermitido("GET", "/api/mesas/mapa", Perfil.COZINHA));
-    }
-
-    @Test
-    void listarIngredientesDisponiveisEExclusivoDoAdministrador() {
-        assertTrue(rules.perfilPermitido("GET", "/api/ingredientes", Perfil.ADMIN));
-        assertFalse(rules.perfilPermitido("GET", "/api/ingredientes", Perfil.GARCOM));
     }
 
     @Test
