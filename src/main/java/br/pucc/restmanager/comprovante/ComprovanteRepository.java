@@ -68,7 +68,8 @@ public class ComprovanteRepository {
                 .map(ComprovanteDados.Item::subtotal)
                 .reduce(new BigDecimal("0.00"), BigDecimal::add);
         BigDecimal percentual = jdbc.queryForObject(
-                "SELECT taxa_servico_percentual FROM tb_configuracao WHERE id = 1",
+                "SELECT CASE WHEN taxa_servico_ativa THEN taxa_servico_percentual ELSE 0 END "
+                        + "FROM tb_configuracao WHERE id = 1",
                 BigDecimal.class);
         BigDecimal taxa = subtotal.multiply(percentual)
                 .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);

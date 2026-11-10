@@ -2,6 +2,7 @@ package br.pucc.restmanager.comanda;
 
 import br.pucc.restmanager.comanda.dto.ComandaResumoResponse;
 import br.pucc.restmanager.caixa.ConfiguracaoService;
+import br.pucc.restmanager.caixa.dto.ConfiguracaoResponse;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.time.format.DateTimeFormatter;
@@ -30,12 +31,23 @@ public class ImpressaoService {
         this.messaging = messaging;
     }
 
-    public void publicarSeConfigurado(Long pedidoId) {
+    public void publicarSeConfigurado(Long pedidoId, Long itemId) {
         try {
-            if (!configuracoes.buscar().imprimirComandaAoAceitar()) {
+            ConfiguracaoResponse configuracao = configuracoes.buscar();
+            if (!configuracao.imprimirComandaAoAceitar()) {
                 return;
             }
-            messaging.convertAndSend("/topic/comandas", comandas.obter(pedidoId));
+            ComandaResumoResponse comanda = comandas.obter(pedidoId);
+            if (!configuracao.comandaUnica()) {
+                messaging.convertAndSend("/topic/comandas", comanda.somenteItem(itemId));
+                return;
+            }
+            long aceitos = comanda.itens().stream()
+                    .filter(item -> !"aguardando".equals(item.status()))
+                    .count();
+            if (aceitos == 1) {
+                messaging.convertAndSend("/topic/comandas", comanda);
+            }
         } catch (RuntimeException ex) {
             LOGGER.error("Falha ao publicar a comanda do pedido {}", pedidoId, ex);
         }

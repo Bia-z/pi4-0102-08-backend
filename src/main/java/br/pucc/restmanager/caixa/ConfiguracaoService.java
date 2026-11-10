@@ -27,14 +27,19 @@ public class ConfiguracaoService {
                 || request.taxaServicoPercentual() == null
                 || request.taxaServicoPercentual().signum() < 0
                 || request.taxaServicoPercentual().compareTo(new BigDecimal("100")) > 0
-                || request.imprimirComandaAoAceitar() == null) {
+                || request.taxaServicoAtiva() == null
+                || request.imprimirComandaAoAceitar() == null
+                || request.comandaUnica() == null
+                || request.imprimirComprovanteAoFechar() == null) {
             throw new BusinessException(ErrorCode.CONFIGURACAO_INVALIDA);
         }
         try {
             BigDecimal percentual = request.taxaServicoPercentual()
                     .setScale(2, RoundingMode.UNNECESSARY);
             return configuracoes.atualizar(
-                    request.nomeRestaurante().trim(), percentual, request.imprimirComandaAoAceitar());
+                    request.nomeRestaurante().trim(), percentual, request.taxaServicoAtiva(),
+                    request.imprimirComandaAoAceitar(), request.comandaUnica(),
+                    request.imprimirComprovanteAoFechar());
         } catch (ArithmeticException ex) {
             throw new BusinessException(ErrorCode.CONFIGURACAO_INVALIDA);
         }

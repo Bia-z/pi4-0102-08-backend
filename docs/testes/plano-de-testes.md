@@ -29,3 +29,9 @@ Ambiente: `docker compose up -d --build` com os dados de teste do `02-seed.sql`.
 | E8 | Depois de fechar a conta, baixar o comprovante | O PDF traz os itens consumidos e o valor pago |
 | E9 | O caixa transfere um pedido em aberto para uma mesa disponível | O pedido passa para a nova mesa com os mesmos itens e status |
 | E14 | Com a mesa em pagamento, o garçom tenta lançar um pedido nela | A tela mostra "Mesa em pagamento" e a API recusa com `MESA_EM_PAGAMENTO` |
+| Caixa | O caixa tenta fechar o turno com alguma mesa ocupada ou em pagamento | O fechamento é recusado com `MESAS_EM_ABERTO` |
+| Caixa | O caixa fecha o turno e depois abre o histórico de turnos | A comanda de fechamento sai na hora e pode ser reimpressa pelo histórico, com o total e os valores por forma de pagamento |
+| Caixa | O caixa registra uma sangria ou um reforço e clica em "Imprimir" | A comanda mostra tipo, valor, horário e motivo |
+| Caixa | O admin desliga a taxa de serviço nas configurações | O mapa de mesas e o pagamento passam a calcular o total sem a taxa |
+| Cozinha | A cozinha inicia o preparo de um item com "Imprimir todos os pratos do pedido em uma comanda só" ligado e depois desligado | Ligado, sai uma comanda com todos os pratos do pedido. Desligado, sai uma comanda só com o item aceito. Em ambos aparece o horário e há botão para reimprimir |
+| Caixa | O caixa escolhe uma data na consulta de comanda | São listadas as comandas daquela data, com opção de ver, imprimir e baixar o PDF |

@@ -35,3 +35,4 @@ Sem dados importantes no banco local? Também vale recriar tudo: `docker compose
 | Nº | Arquivo | O que muda | Data | Autor |
 | :--- | :--- | :--- | :--- | :--- |
 | 001 | `001-usuario-cpf-telefone.sql` | `tb_usuario`: e-mail opcional, colunas `cpf` (único) e `telefone` | 04/11/2026 | Beatriz (cadastro) · Lucas (script) |
+| 002 | `002-configuracao-impressao.sql` | `tb_configuracao`: colunas `taxa_servico_ativa`, `comanda_unica` e `imprimir_comprovante_ao_fechar` | 10/11/2026 | Lucas |

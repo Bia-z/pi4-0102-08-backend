@@ -83,6 +83,35 @@ class CaixaServiceTest {
     }
 
     @Test
+    void naoFechaTurnoComMesaEmAberto() {
+        when(repository.caixaAbertoComBloqueio())
+                .thenReturn(Optional.of(caixa("ABERTO", new BigDecimal("100.00"), null, null)));
+        when(repository.existeMesaEmAberto()).thenReturn(true);
+        when(usuarios.findByCodigo("caixaConfirma")).thenReturn(Optional.of(usuario(Perfil.CAIXA)));
+        when(passwordEncoder.matches("senha-segura", "hash-senha")).thenReturn(true);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> service().fechar(
+                        new FecharCaixaRequest(new BigDecimal("150"), "caixaConfirma", "senha-segura")));
+
+        assertEquals(ErrorCode.MESAS_EM_ABERTO, exception.getErro());
+        verify(repository, never()).fechar(
+                org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void resumoDeTurnoInexistenteInformaCaixaNaoEncontrado() {
+        when(repository.resumo(99L)).thenReturn(Optional.empty());
+
+        BusinessException exception = assertThrows(
+                BusinessException.class, () -> service().resumo(99L));
+
+        assertEquals(ErrorCode.CAIXA_NAO_ENCONTRADO, exception.getErro());
+    }
+
+    @Test
     void rejeitaValoresMonetariosComMaisDeDuasCasas() {
         BusinessException exception = assertThrows(
                 BusinessException.class,
