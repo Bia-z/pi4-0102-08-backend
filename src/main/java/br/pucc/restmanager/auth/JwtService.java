@@ -23,7 +23,6 @@ public class JwtService {
         this.expiracaoMs = minutos * 60 * 1000;
     }
 
-    // O token carrega o código (subject) e o perfil em minúsculas, como na ficha
     public String gerarToken(Usuario usuario) {
         Date agora = new Date();
         return Jwts.builder()

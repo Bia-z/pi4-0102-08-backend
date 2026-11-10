@@ -241,11 +241,3 @@ erDiagram
 - `GET /api/pedidos/{pedidoId}/comanda` retorna os itens imprimíveis e `/pdf` gera a comanda. Quando a impressão automática está habilitada, a cozinha recebe a comanda em `/topic/comandas` ao iniciar o preparo.
 
 O schema ainda não mantém histórico de impressões/reimpressões da comanda; o endpoint gera a comanda a partir do pedido existente. Os turnos aceitos pelo backend são `MANHA`, `TARDE` e `NOITE`.
-
-## Pendências (a combinar)
-
-| Item | Com quem |
-| :--- | :--- |
-| Confirmar o status por item + status geral do pedido | Heitor (E3) e Vitória (E5) |
-| Tabelas de cancelamento (E12), reserva (E13) e histórico de impressão da comanda (E15) | Vitória |
-| Definição formal de turnos para o caixa (E10/E11) | Nathalia |

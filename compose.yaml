@@ -1,6 +1,4 @@
 services:
-
-  # ---------- BANCO DE DADOS ----------
   db:
     image: postgres:16-alpine
     environment:
@@ -18,7 +16,6 @@ services:
       timeout: 5s
       retries: 10
 
-  # ---------- BACKEND (Spring Boot) ----------
   backend:
     build: .
     environment:
@@ -33,7 +30,6 @@ services:
     ports:
       - "8080:8080"
 
-  # ---------- FRONTEND (nginx) ----------
   frontend:
     build: ../pi4-0102-08-frontend
     depends_on:

@@ -11,9 +11,48 @@ O RestManager é uma plataforma web de gestão de restaurante que substitui as c
 - Nathalia Lopes Da Silva Lima — @NathyLopes
 - Vitória Aparecida Brigo Mattos — @Vitoria-Mattos
 
-## Link para o respositorio do frontend
+## Tecnologias
 
-https://github.com/Bia-z/pi4-0102-08-frontend/tree/main/docs/fluxos
+- Backend: Java 17, Spring Boot 3.5 (Web, Data JPA, Security, Validation, WebSocket/STOMP), JWT e BCrypt
+- Banco: PostgreSQL 16
+- Frontend: HTML, CSS (Bootstrap 5) e JavaScript ES6 servidos pelo nginx, no repositório [pi4-0102-08-frontend](https://github.com/Bia-z/pi4-0102-08-frontend)
+- Execução: Docker Compose; CI no GitHub Actions com `mvn verify`
+
+## Como rodar
+
+Os dois repositórios precisam estar na mesma pasta:
+
+```
+git clone https://github.com/Bia-z/pi4-0102-08-backend.git
+git clone https://github.com/Bia-z/pi4-0102-08-frontend.git
+cd pi4-0102-08-backend
+cp .env.example .env
+docker compose up -d --build
+```
+
+No PowerShell, troque `cp` por `Copy-Item`. A aplicação fica em http://localhost:3000 e a API em http://localhost:8080.
+
+Usuários de teste, todos com a senha `restmanager123`: `admin`, `garcom1`, `garcom2`, `cozinha` e `caixa`.
+
+Para atualizar um banco criado antes de alguma mudança no esquema, veja [docker/db/migracoes](docker/db/migracoes/README.md).
+
+## Testes
+
+```
+docker run --rm -v "$PWD":/app -w /app maven:3.9-eclipse-temurin-17 mvn verify
+```
+
+Com Java 17 e Maven instalados, basta `mvn verify`.
+
+## Documentação
+
+| Pasta | Conteúdo |
+| :--- | :--- |
+| `docs/contrato` | Contratos da API, das tabelas e das mensagens em tempo real (CT1 a CT22) |
+| `docs/banco` | Modelo do banco e convenções |
+| `docs/adr` | Decisões de arquitetura |
+| `docs/testes` | Plano de testes e roteiro de demonstração |
+| `docs/escopo.pdf` | Escopo do projeto |
 
 ## Segurança da API
 
