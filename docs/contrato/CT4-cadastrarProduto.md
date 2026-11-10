@@ -19,7 +19,7 @@ O cadastro é permitido somente ao perfil `ADMIN`.
 | preco | decimal | sim | 28.00 |
 | categoriaId | inteiro | sim | 1 |
 | imagemUrl | texto | não | bruschetta.jpg |
-| ingredientes | lista de IDs de ingredientes ativos | sim, ao menos 1, sem repetição | [1, 2, 5] |
+| ingredientes | lista de IDs de ingredientes ativos | não, sem repetição | [1, 2, 5] |
 | ativo | booleano | sim | true |
 
 ### Saída
@@ -42,7 +42,6 @@ O cadastro é permitido somente ao perfil `ADMIN`.
 | A categoria informada não existe | Erro CATEGORIA_NAO_ENCONTRADA |
 | O valor do preço é menor ou igual a zero | Erro PRECO_INVALIDO |
 | Já existe um prato cadastrado com o mesmo nome | Erro PRODUTO_DUPLICADO |
-| Nenhum ingrediente foi informado | Erro INGREDIENTES_OBRIGATORIOS |
 | Um ingrediente informado não existe ou está inativo | Erro INGREDIENTE_NAO_ENCONTRADO |
 | Um ingrediente foi selecionado mais de uma vez | Erro INGREDIENTE_DUPLICADO |
 

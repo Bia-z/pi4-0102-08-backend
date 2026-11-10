@@ -123,16 +123,16 @@ class ProdutoServiceTest {
     }
 
     @Test
-    void exigeAoMenosUmIngrediente() {
+    void cadastraProdutoSemIngredientes() {
         when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
         when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+        when(produtos.save(any(Produto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> service.cadastrar(request(
-                        "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of())));
+        ProdutoResponse response = service.cadastrar(new CadastrarProdutoRequest(
+                "Bruschetta", null, new BigDecimal("28.00"), 1L, null, null, true));
 
-        assertEquals(ErrorCode.INGREDIENTES_OBRIGATORIOS, exception.getErro());
-        verify(produtos, never()).save(any(Produto.class));
+        assertEquals("Bruschetta", response.nome());
+        verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
     }
 
     @Test
@@ -146,19 +146,6 @@ class ProdutoServiceTest {
 
         assertEquals(ErrorCode.INGREDIENTE_DUPLICADO, exception.getErro());
         verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
-        verify(produtos, never()).save(any(Produto.class));
-    }
-
-    @Test
-    void recusaProdutoSemIngredientesMesmoQuandoListaEstaAusente() {
-        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
-        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
-
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> service.cadastrar(new CadastrarProdutoRequest(
-                        "Bruschetta", null, new BigDecimal("28.00"), 1L, null, null, true)));
-
-        assertEquals(ErrorCode.INGREDIENTES_OBRIGATORIOS, exception.getErro());
         verify(produtos, never()).save(any(Produto.class));
     }
 
@@ -226,6 +213,24 @@ class ProdutoServiceTest {
         assertEquals(new BigDecimal("28.00"), response.preco());
         assertEquals(List.of(1L), response.ingredientes());
         assertFalse(response.ativo());
+    }
+
+    @Test
+    void mantemIngredientesAtuaisQuandoAtualizacaoNaoInformaIngredientes() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente tomate = new Ingrediente("Tomate", true);
+        ReflectionTestUtils.setField(tomate, "id", 1L);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true, Set.of(tomate));
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+
+        ProdutoResponse response = service.atualizar(10L, new CadastrarProdutoRequest(
+                "Bruschetta", null, new BigDecimal("22.00"), 1L, null, null, true));
+
+        assertEquals(List.of(1L), response.ingredientes());
+        verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
     }
 
     @Test

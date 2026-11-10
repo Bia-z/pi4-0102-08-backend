@@ -18,7 +18,7 @@ Ambiente: `docker compose up -d --build` com os dados de teste do `02-seed.sql`.
 | E1 | `admin` cadastra um funcionário com nome, CPF, telefone, código, perfil e senha | O funcionário aparece na lista e consegue entrar com o código e a senha |
 | E1 | `garcom1` tenta abrir uma tela ou operação de administrador | A tela volta para a área do garçom e a API responde `403 ACESSO_NEGADO` |
 | E1 | Login com o usuário `inativo` | Mensagem de usuário inativo |
-| E2 | `admin` cadastra um produto com nome, preço, categoria e ingrediente, e uma mesa com número e capacidade | Produto e mesa aparecem no cardápio e no mapa de mesas do garçom |
+| E2 | `admin` cadastra um produto com nome, preço e categoria, e uma mesa com número e capacidade | Produto e mesa aparecem no cardápio e no mapa de mesas do garçom |
 | E3 | `garcom1` escolhe uma mesa disponível, adiciona itens com observação e envia | O pedido aparece registrado para a mesa e a mesa fica ocupada |
 | E4 | Com a tela da cozinha aberta, o garçom envia um pedido | O pedido aparece na cozinha sem recarregar a página, na ordem de chegada |
 | E5 | A cozinha clica em "Iniciar preparo" e depois em "Marcar como pronto" | O status muda na tela de acompanhamento do garçom em tempo real |
