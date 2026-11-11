@@ -1,7 +1,5 @@
 spring:
   datasource:
-    # Dentro do Docker o banco se chama "db" (nome do serviço no compose.yaml)
-    # Os valores vêm das variáveis de ambiente que o compose.yaml passa
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}

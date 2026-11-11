@@ -2,6 +2,7 @@ package br.pucc.restmanager.caixa;
 
 import br.pucc.restmanager.caixa.dto.CaixaResponse;
 import br.pucc.restmanager.caixa.dto.MovimentacaoResponse;
+import br.pucc.restmanager.caixa.dto.ResumoTurnoResponse;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -81,6 +82,46 @@ public class CaixaRepository {
                         """,
                 valorFechamento, esperado, caixaId);
         return atualizados == 0 ? Optional.empty() : buscarPorId(caixaId);
+    }
+
+    public boolean existeMesaEmAberto() {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                        SELECT EXISTS (
+                            SELECT 1 FROM tb_mesa
+                            WHERE ativo = TRUE AND status IN ('OCUPADA', 'EM_PAGAMENTO')
+                        )
+                        """,
+                Boolean.class));
+    }
+
+    public Optional<ResumoTurnoResponse> resumo(Long caixaId) {
+        return buscarPorId(caixaId).map(caixa -> jdbc.queryForObject("""
+                        SELECT COALESCE(SUM(pg.valor - pg.troco), 0) AS recebido,
+                               COALESCE(SUM(pg.valor - pg.troco) FILTER
+                                   (WHERE pg.forma_pagamento = 'DINHEIRO'), 0) AS dinheiro,
+                               COALESCE(SUM(pg.valor - pg.troco) FILTER
+                                   (WHERE pg.forma_pagamento = 'CREDITO'), 0) AS credito,
+                               COALESCE(SUM(pg.valor - pg.troco) FILTER
+                                   (WHERE pg.forma_pagamento = 'DEBITO'), 0) AS debito,
+                               COALESCE(SUM(pg.valor - pg.troco) FILTER
+                                   (WHERE pg.forma_pagamento = 'PIX'), 0) AS pix,
+                               COALESCE(SUM(pg.valor - pg.troco) FILTER
+                                   (WHERE pg.forma_pagamento = 'VALE'), 0) AS vale,
+                               COUNT(pg.id) AS quantidade,
+                               (SELECT COALESCE(SUM(mc.valor), 0) FROM tb_movimentacao_caixa mc
+                                WHERE mc.caixa_id = ? AND mc.tipo = 'SANGRIA') AS sangrias,
+                               (SELECT COALESCE(SUM(mc.valor), 0) FROM tb_movimentacao_caixa mc
+                                WHERE mc.caixa_id = ? AND mc.tipo = 'REFORCO') AS reforcos
+                        FROM tb_pagamento pg
+                        WHERE pg.caixa_id = ?
+                        """,
+                (rs, row) -> new ResumoTurnoResponse(caixa,
+                        rs.getBigDecimal("recebido"), rs.getBigDecimal("dinheiro"),
+                        rs.getBigDecimal("credito"), rs.getBigDecimal("debito"),
+                        rs.getBigDecimal("pix"), rs.getBigDecimal("vale"),
+                        rs.getLong("quantidade"), rs.getBigDecimal("sangrias"),
+                        rs.getBigDecimal("reforcos")),
+                caixaId, caixaId, caixaId));
     }
 
     public List<CaixaResponse> historico() {

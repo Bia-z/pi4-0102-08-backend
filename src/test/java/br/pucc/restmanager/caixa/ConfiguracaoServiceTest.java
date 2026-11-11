@@ -23,9 +23,12 @@ class ConfiguracaoServiceTest {
 
     @Test
     void atualizaTaxaDeServicoDentroDoIntervaloPermitido() {
-        var request = new ConfiguracaoRequest("Restaurante", new BigDecimal("12.50"), true);
-        var response = new ConfiguracaoResponse("Restaurante", new BigDecimal("12.50"), true);
-        when(repository.atualizar("Restaurante", new BigDecimal("12.50"), true)).thenReturn(response);
+        var request = new ConfiguracaoRequest(
+                "Restaurante", new BigDecimal("12.50"), false, true, false, true);
+        var response = new ConfiguracaoResponse(
+                "Restaurante", new BigDecimal("12.50"), false, true, false, true);
+        when(repository.atualizar("Restaurante", new BigDecimal("12.50"), false, true, false, true))
+                .thenReturn(response);
 
         assertEquals(response, new ConfiguracaoService(repository).atualizar(request));
     }
@@ -35,11 +38,25 @@ class ConfiguracaoServiceTest {
         BusinessException exception = assertThrows(
                 BusinessException.class,
                 () -> new ConfiguracaoService(repository).atualizar(
-                        new ConfiguracaoRequest("Restaurante", new BigDecimal("100.01"), true)));
+                        new ConfiguracaoRequest(
+                                "Restaurante", new BigDecimal("100.01"), true, true, true, false)));
 
         assertEquals(ErrorCode.CONFIGURACAO_INVALIDA, exception.getErro());
         verify(repository, org.mockito.Mockito.never())
                 .atualizar(org.mockito.ArgumentMatchers.anyString(),
-                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean(),
+                        org.mockito.ArgumentMatchers.anyBoolean(), org.mockito.ArgumentMatchers.anyBoolean(),
+                        org.mockito.ArgumentMatchers.anyBoolean());
+    }
+
+    @Test
+    void exigeTodasAsOpcoesDeImpressao() {
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> new ConfiguracaoService(repository).atualizar(
+                        new ConfiguracaoRequest(
+                                "Restaurante", new BigDecimal("10.00"), true, true, null, false)));
+
+        assertEquals(ErrorCode.CONFIGURACAO_INVALIDA, exception.getErro());
     }
 }

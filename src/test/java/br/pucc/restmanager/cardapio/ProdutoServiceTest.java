@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.pucc.restmanager.cardapio.domain.Categoria;
+import br.pucc.restmanager.cardapio.domain.Ingrediente;
 import br.pucc.restmanager.cardapio.domain.Produto;
 import br.pucc.restmanager.cardapio.dto.CadastrarProdutoRequest;
 import br.pucc.restmanager.cardapio.dto.CardapioCategoriaResponse;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,22 +39,27 @@ class ProdutoServiceTest {
     @Mock
     CategoriaRepository categorias;
 
+    @Mock
+    IngredienteRepository ingredientes;
+
     private ProdutoService service;
 
     @BeforeEach
     void montar() {
-        service = new ProdutoService(produtos, categorias);
+        service = new ProdutoService(produtos, categorias, ingredientes);
     }
 
     @Test
     void cadastraProdutoNaCategoriaEDevolveRespostaDoContrato() {
         Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente ingrediente = new Ingrediente("Tomate", true);
         when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
         when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(1L))).thenReturn(List.of(ingrediente));
         when(produtos.save(any(Produto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ProdutoResponse response = service.cadastrar(request(
-                "Bruschetta", new BigDecimal("28.00"), 1L, null));
+                "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of(1L)));
 
         assertEquals("Bruschetta", response.nome());
         assertEquals(1L, response.categoriaId());
@@ -102,10 +109,51 @@ class ProdutoServiceTest {
     }
 
     @Test
+    void recusaIngredienteInexistente() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(5L))).thenReturn(List.of());
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.cadastrar(new CadastrarProdutoRequest(
+                        "Bruschetta", null, new BigDecimal("28.00"), 1L, null, List.of(5L), true)));
+
+        assertEquals(ErrorCode.INGREDIENTE_NAO_ENCONTRADO, exception.getErro());
+        verify(produtos, never()).save(any(Produto.class));
+    }
+
+    @Test
+    void cadastraProdutoSemIngredientes() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+        when(produtos.save(any(Produto.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProdutoResponse response = service.cadastrar(new CadastrarProdutoRequest(
+                "Bruschetta", null, new BigDecimal("28.00"), 1L, null, null, true));
+
+        assertEquals("Bruschetta", response.nome());
+        verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
+    }
+
+    @Test
+    void recusaIngredienteRepetido() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria(1L, "Entradas", 1, true)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.cadastrar(request(
+                        "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of(1L, 1L))));
+
+        assertEquals(ErrorCode.INGREDIENTE_DUPLICADO, exception.getErro());
+        verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
+        verify(produtos, never()).save(any(Produto.class));
+    }
+
+    @Test
     void listaCardapioPorCategoriaSomenteComCategoriasEProdutosAtivos() {
         Categoria categoria = categoria(1L, "Entradas", 1, true);
         Produto ativo = new Produto(
-                categoria, "Bruschetta", null, new BigDecimal("28.00"), true);
+                categoria, "Bruschetta", null, new BigDecimal("28.00"), true, java.util.Set.of());
         when(categorias.findByAtivoTrueOrderByOrdemAscNomeAsc()).thenReturn(List.of(categoria));
         when(produtos.findByCategoriaIdAndAtivoTrueOrderByNomeAsc(1L)).thenReturn(List.of(ativo));
 
@@ -121,9 +169,11 @@ class ProdutoServiceTest {
     @Test
     void produtoAtivoCadastradoFicaDisponivelNoCardapio() {
         Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente ingrediente = new Ingrediente("Tomate", true);
         List<Produto> salvos = new ArrayList<>();
         when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
         when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(1L))).thenReturn(List.of(ingrediente));
         when(produtos.save(any(Produto.class))).thenAnswer(invocation -> {
             Produto produto = invocation.getArgument(0);
             salvos.add(produto);
@@ -134,7 +184,7 @@ class ProdutoServiceTest {
                 invocation -> salvos.stream().filter(Produto::isAtivo).toList());
 
         service.cadastrar(request(
-                "Bruschetta", new BigDecimal("28.00"), 1L, null));
+                "Bruschetta", new BigDecimal("28.00"), 1L, null, List.of(1L)));
         List<CardapioCategoriaResponse> cardapio = service.listarCardapio();
 
         assertEquals(List.of("Bruschetta"),
@@ -143,42 +193,84 @@ class ProdutoServiceTest {
     }
 
     @Test
-    void atualizaProdutoIncluindoCategoriaEAtivacao() {
-        Categoria entradas = categoria(1L, "Entradas", 1, true);
-        Categoria adicionais = categoria(2L, "Adicionais", 4, true);
+    void atualizaProdutoIncluindoIngredientesEAtivacao() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente tomate = new Ingrediente("Tomate", true);
+        ReflectionTestUtils.setField(tomate, "id", 1L);
         Produto produto = new Produto(
-                entradas, "Bruschetta", null, new BigDecimal("20.00"), true);
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true,
+                java.util.Set.of());
         ReflectionTestUtils.setField(produto, "id", 10L);
-        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
-        when(categorias.findById(2L)).thenReturn(Optional.of(adicionais));
+        when(produtos.findById(10L)).thenReturn(java.util.Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(java.util.Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(1L))).thenReturn(List.of(tomate));
 
         ProdutoResponse response = service.atualizar(10L, new CadastrarProdutoRequest(
                 "Bruschetta atualizada", "Nova descrição", new BigDecimal("28.00"),
-                2L, "imagem.jpg", false));
+                1L, "imagem.jpg", List.of(1L), false));
 
         assertEquals("Bruschetta atualizada", response.nome());
         assertEquals(new BigDecimal("28.00"), response.preco());
-        assertEquals(2L, response.categoriaId());
+        assertEquals(List.of(1L), response.ingredientes());
         assertFalse(response.ativo());
     }
 
     @Test
-    void produtoDaCategoriaAdicionaisAparecePertoDasDemaisCategoriasNoCardapio() {
-        Categoria pratos = categoria(1L, "Pratos principais", 2, true);
-        Categoria adicionais = categoria(2L, "Adicionais", 4, true);
-        Produto queijo = new Produto(
-                adicionais, "Queijo extra", null, new BigDecimal("6.00"), true);
-        when(categorias.findByAtivoTrueOrderByOrdemAscNomeAsc())
-                .thenReturn(List.of(pratos, adicionais));
-        when(produtos.findByCategoriaIdAndAtivoTrueOrderByNomeAsc(1L)).thenReturn(List.of());
-        when(produtos.findByCategoriaIdAndAtivoTrueOrderByNomeAsc(2L)).thenReturn(List.of(queijo));
+    void mantemIngredientesAtuaisQuandoAtualizacaoNaoInformaIngredientes() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente tomate = new Ingrediente("Tomate", true);
+        ReflectionTestUtils.setField(tomate, "id", 1L);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true, Set.of(tomate));
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
 
-        List<CardapioCategoriaResponse> cardapio = service.listarCardapio();
+        ProdutoResponse response = service.atualizar(10L, new CadastrarProdutoRequest(
+                "Bruschetta", null, new BigDecimal("22.00"), 1L, null, null, true));
 
-        assertEquals(List.of("Pratos principais", "Adicionais"),
-                cardapio.stream().map(CardapioCategoriaResponse::nome).toList());
-        assertEquals(List.of("Queijo extra"),
-                cardapio.get(1).produtos().stream().map(ProdutoResponse::nome).toList());
+        assertEquals(List.of(1L), response.ingredientes());
+        verify(ingredientes, never()).findByIdInAndAtivoTrue(any());
+    }
+
+    @Test
+    void mantemIngredienteJaVinculadoMesmoDesativadoAoAtualizarProduto() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Ingrediente tomateDesativado = new Ingrediente("Tomate", false);
+        ReflectionTestUtils.setField(tomateDesativado, "id", 1L);
+        Ingrediente manjericao = new Ingrediente("Manjericão", true);
+        ReflectionTestUtils.setField(manjericao, "id", 2L);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true,
+                Set.of(tomateDesativado));
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(2L))).thenReturn(List.of(manjericao));
+
+        ProdutoResponse response = service.atualizar(10L, new CadastrarProdutoRequest(
+                "Bruschetta", null, new BigDecimal("22.00"),
+                1L, null, List.of(1L, 2L), true));
+
+        assertEquals(Set.of(1L, 2L), Set.copyOf(response.ingredientes()));
+    }
+
+    @Test
+    void recusaIngredienteNovoDesativadoAoAtualizarProduto() {
+        Categoria categoria = categoria(1L, "Entradas", 1, true);
+        Produto produto = new Produto(
+                categoria, "Bruschetta", null, new BigDecimal("20.00"), true, Set.of());
+        ReflectionTestUtils.setField(produto, "id", 10L);
+        when(produtos.findById(10L)).thenReturn(Optional.of(produto));
+        when(categorias.findById(1L)).thenReturn(Optional.of(categoria));
+        when(ingredientes.findByIdInAndAtivoTrue(List.of(3L))).thenReturn(List.of());
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.atualizar(10L, new CadastrarProdutoRequest(
+                        "Bruschetta", null, new BigDecimal("22.00"),
+                        1L, null, List.of(3L), true)));
+
+        assertEquals(ErrorCode.INGREDIENTE_NAO_ENCONTRADO, exception.getErro());
     }
 
     private Categoria categoria(Long id, String nome, int ordem, boolean ativo) {
@@ -190,6 +282,12 @@ class ProdutoServiceTest {
     private CadastrarProdutoRequest request(String nome, BigDecimal preco, Long categoriaId,
                                             String imagemUrl) {
         return new CadastrarProdutoRequest(
-                nome, null, preco, categoriaId, imagemUrl, true);
+                nome, null, preco, categoriaId, imagemUrl, List.of(1L), true);
+    }
+
+    private CadastrarProdutoRequest request(String nome, BigDecimal preco, Long categoriaId,
+                                            String imagemUrl, List<Long> idsIngredientes) {
+        return new CadastrarProdutoRequest(
+                nome, null, preco, categoriaId, imagemUrl, idsIngredientes, true);
     }
 }

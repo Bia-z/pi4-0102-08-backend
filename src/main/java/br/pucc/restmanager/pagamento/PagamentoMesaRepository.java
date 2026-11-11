@@ -66,7 +66,8 @@ public class PagamentoMesaRepository {
 
     public BigDecimal taxaServicoPercentual() {
         return jdbc.queryForObject(
-                "SELECT taxa_servico_percentual FROM tb_configuracao WHERE id = 1",
+                "SELECT CASE WHEN taxa_servico_ativa THEN taxa_servico_percentual ELSE 0 END "
+                        + "FROM tb_configuracao WHERE id = 1",
                 BigDecimal.class);
     }
 

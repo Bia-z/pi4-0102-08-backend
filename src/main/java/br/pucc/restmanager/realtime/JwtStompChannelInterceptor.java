@@ -46,9 +46,6 @@ public class JwtStompChannelInterceptor implements ChannelInterceptor {
         return message;
     }
 
-    // /topic/mesas (CT21) e /topic/pedidos (CT11) são para qualquer usuário autenticado:
-    // Garçom, Cozinha e Caixa acompanham os dois. /topic/cozinha (CT9) e /topic/comandas
-    // continuam restritos à Cozinha e ao Administrador.
     private boolean podeAssinar(StompHeaderAccessor accessor, String destination) {
         if (accessor.getUser() == null || destination == null) {
             return false;

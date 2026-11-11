@@ -5,6 +5,8 @@ import br.pucc.restmanager.common.BusinessException;
 import br.pucc.restmanager.common.ErrorCode;
 import br.pucc.restmanager.pedido.PedidoRepository;
 import br.pucc.restmanager.pedido.domain.Pedido;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +22,19 @@ public class ComandaService {
 
     @Transactional(readOnly = true)
     public ComandaResumoResponse obter(Long pedidoId) {
-        Pedido pedido = pedidos.findById(pedidoId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PEDIDO_NAO_ENCONTRADO));
+        return comanda(pedidos.findById(pedidoId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PEDIDO_NAO_ENCONTRADO)));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComandaResumoResponse> listar(LocalDate data) {
+        return pedidos.buscarCriadosEntre(data.atStartOfDay(), data.plusDays(1).atStartOfDay())
+                .stream()
+                .map(this::comanda)
+                .toList();
+    }
+
+    private ComandaResumoResponse comanda(Pedido pedido) {
         return new ComandaResumoResponse(
                 pedido.getId(),
                 pedido.getMesa().getNumero(),
@@ -29,6 +42,7 @@ public class ComandaService {
                 pedido.getDataCriacao(),
                 pedido.getItens().stream()
                         .map(item -> new ComandaResumoResponse.Item(
+                                item.getId(),
                                 item.getProduto().getNome(),
                                 item.getQuantidade(),
                                 item.getObservacao(),

@@ -24,7 +24,6 @@ public class AuthService {
     }
 
     public LoginResponse autenticar(LoginRequest req) {
-        // Código inexistente e senha errada dão o MESMO erro: não revela qual dos dois falhou
         Usuario usuario = usuarios.findByCodigo(req.codigo())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CREDENCIAIS_INVALIDAS));
 
@@ -32,7 +31,6 @@ public class AuthService {
             throw new BusinessException(ErrorCode.CREDENCIAIS_INVALIDAS);
         }
 
-        // Só depois da senha certa: quem não sabe a senha não descobre se a conta está inativa
         if (!usuario.isAtivo()) {
             throw new BusinessException(ErrorCode.USUARIO_INATIVO);
         }

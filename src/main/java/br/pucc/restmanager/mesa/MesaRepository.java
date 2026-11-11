@@ -33,7 +33,7 @@ public interface MesaRepository extends JpaRepository<Mesa, Long> {
                    COALESCE(
                        ROUND(
                            SUM(i.quantidade * i.preco_unitario)
-                               * (1 + COALESCE(c.taxa_servico_percentual, 0) / 100),
+                               * (1 + COALESCE(CASE WHEN c.taxa_servico_ativa THEN c.taxa_servico_percentual END, 0) / 100),
                            2
                        ),
                        0
@@ -47,7 +47,7 @@ public interface MesaRepository extends JpaRepository<Mesa, Long> {
                 AND i.status <> 'CANCELADO'
             LEFT JOIN tb_configuracao c ON c.id = 1
             WHERE m.ativo = TRUE
-            GROUP BY m.id, m.numero, m.status, c.taxa_servico_percentual
+            GROUP BY m.id, m.numero, m.status, c.taxa_servico_ativa, c.taxa_servico_percentual
             ORDER BY m.numero
             """, nativeQuery = true)
     List<MesaMapaProjection> obterMapaMesas();

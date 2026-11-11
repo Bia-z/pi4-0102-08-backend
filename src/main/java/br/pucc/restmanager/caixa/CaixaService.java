@@ -7,6 +7,7 @@ import br.pucc.restmanager.caixa.dto.FechamentoResumoResponse;
 import br.pucc.restmanager.caixa.dto.HistoricoFechamentoResponse;
 import br.pucc.restmanager.caixa.dto.MovimentacaoRequest;
 import br.pucc.restmanager.caixa.dto.MovimentacaoResponse;
+import br.pucc.restmanager.caixa.dto.ResumoTurnoResponse;
 import br.pucc.restmanager.caixa.domain.TipoMovimentacao;
 import br.pucc.restmanager.caixa.domain.Turno;
 import br.pucc.restmanager.common.BusinessException;
@@ -77,11 +78,19 @@ public class CaixaService {
         BigDecimal fechamento = moeda(request.valorFechamento());
         CaixaResponse aberto = caixas.caixaAbertoComBloqueio()
                 .orElseThrow(() -> new BusinessException(ErrorCode.CAIXA_NAO_ABERTO));
+        if (caixas.existeMesaEmAberto()) {
+            throw new BusinessException(ErrorCode.MESAS_EM_ABERTO);
+        }
         BigDecimal esperado = caixas.calcularValorEsperado(aberto.id()).setScale(2, RoundingMode.HALF_UP);
         CaixaResponse fechado = caixas.fechar(aberto.id(), fechamento, esperado)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CAIXA_NAO_ABERTO));
         return new FechamentoResumoResponse(fechado, esperado,
                 fechamento.subtract(esperado).setScale(2, RoundingMode.HALF_UP));
+    }
+
+    public ResumoTurnoResponse resumo(Long caixaId) {
+        return caixas.resumo(caixaId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CAIXA_NAO_ENCONTRADO));
     }
 
     public HistoricoFechamentoResponse historico() {

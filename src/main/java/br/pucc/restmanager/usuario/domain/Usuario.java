@@ -17,7 +17,7 @@ public class Usuario {
     private String cpf;
     @Column(length = 20)
     private String telefone;
-    private String senha; // hash BCrypt, nunca a senha pura
+    private String senha;
 
     @Enumerated(EnumType.STRING)
     private Perfil perfil;
@@ -25,7 +25,6 @@ public class Usuario {
     private boolean ativo;
 
     protected Usuario() {
-        // exigido pelo JPA
     }
 
     public Usuario(String codigo, String nome, String email, String senha, Perfil perfil, boolean ativo) {

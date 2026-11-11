@@ -111,6 +111,9 @@ class PerfilAccessRulesTest {
     void comandaPodeSerConsultadaPelaEquipeDeAtendimento() {
         assertTrue(rules.perfilPermitido("GET", "/api/pedidos/42/comanda", Perfil.COZINHA));
         assertTrue(rules.perfilPermitido("GET", "/api/pedidos/42/comanda/pdf", Perfil.GARCOM));
-        assertFalse(rules.perfilPermitido("GET", "/api/pedidos/42/comanda", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("GET", "/api/pedidos/42/comanda", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("GET", "/api/comandas", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("GET", "/api/caixa/3/resumo", Perfil.CAIXA));
+        assertFalse(rules.perfilPermitido("GET", "/api/caixa/3/resumo", Perfil.GARCOM));
     }
 }

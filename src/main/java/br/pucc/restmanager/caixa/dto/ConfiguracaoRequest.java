@@ -5,5 +5,8 @@ import java.math.BigDecimal;
 public record ConfiguracaoRequest(
         String nomeRestaurante,
         BigDecimal taxaServicoPercentual,
-        Boolean imprimirComandaAoAceitar) {
+        Boolean taxaServicoAtiva,
+        Boolean imprimirComandaAoAceitar,
+        Boolean comandaUnica,
+        Boolean imprimirComprovanteAoFechar) {
 }

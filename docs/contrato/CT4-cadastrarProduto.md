@@ -19,6 +19,7 @@ O cadastro é permitido somente ao perfil `ADMIN`.
 | preco | decimal | sim | 28.00 |
 | categoriaId | inteiro | sim | 1 |
 | imagemUrl | texto | não | bruschetta.jpg |
+| ingredientes | lista de IDs de ingredientes ativos | não, sem repetição | [1, 2, 5] |
 | ativo | booleano | sim | true |
 
 ### Saída
@@ -41,12 +42,22 @@ O cadastro é permitido somente ao perfil `ADMIN`.
 | A categoria informada não existe | Erro CATEGORIA_NAO_ENCONTRADA |
 | O valor do preço é menor ou igual a zero | Erro PRECO_INVALIDO |
 | Já existe um prato cadastrado com o mesmo nome | Erro PRODUTO_DUPLICADO |
+| Um ingrediente informado não existe ou está inativo | Erro INGREDIENTE_NAO_ENCONTRADO |
+| Um ingrediente foi selecionado mais de uma vez | Erro INGREDIENTE_DUPLICADO |
 
-As categorias do cardápio são: Entradas, Pratos principais, Sobremesas,
-**Adicionais** (itens extras que acompanham um prato, como queijo ou bacon extra)
-e Bebidas. As categorias disponíveis para o formulário vêm de `GET /api/cardapio`.
+Para obter as opções disponíveis no formulário, use `GET /api/ingredientes`
+com token de administrador. A resposta contém somente ingredientes ativos,
+ordenados pelo nome:
 
-## Gerenciar itens
+```json
+[
+  { "id": 1, "nome": "Alho" },
+  { "id": 2, "nome": "Manjericão" },
+  { "id": 3, "nome": "Tomate" }
+]
+```
+
+## Gerenciar itens e ingredientes
 
 Todas as operações de gerenciamento abaixo exigem perfil `ADMIN`. A remoção é
 lógica: o registro permanece para preservar pedidos e históricos associados.
@@ -54,8 +65,14 @@ lógica: o registro permanece para preservar pedidos e históricos associados.
 | Recurso | Listar para gerenciamento | Editar | Remover |
 | :--- | :--- | :--- | :--- |
 | Itens/produtos | `GET /api/produtos` | `PUT /api/produtos/{id}` | `DELETE /api/produtos/{id}` |
+| Ingredientes | `GET /api/ingredientes/gerenciamento` | `PUT /api/ingredientes/{id}` | `DELETE /api/ingredientes/{id}` |
 
-O `PUT` de produto recebe os mesmos campos do cadastro.
+O cadastro de ingrediente usa `POST /api/ingredientes` com `{ "nome": "Alho" }`.
+O `PUT` de produto recebe os mesmos campos do cadastro e devolve os IDs dos
+ingredientes associados. O `PUT` de ingrediente recebe `{ "nome": "...",
+"ativo": true }`; essa operação também permite reativar um ingrediente.
+O `GET /api/ingredientes` continua retornando somente os ingredientes ativos
+para uso nos formulários de produto.
 
 ## listarCardapio
 
