@@ -181,6 +181,18 @@ class ProdutoServiceTest {
                 cardapio.get(1).produtos().stream().map(ProdutoResponse::nome).toList());
     }
 
+    @Test
+    void recusaCadastrarItemEmCategoriaDesativada() {
+        when(produtos.existsByNomeIgnoreCase("Bruschetta")).thenReturn(false);
+        when(categorias.findById(4L)).thenReturn(Optional.of(categoria(4L, "Antiga", 9, false)));
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.cadastrar(request("Bruschetta", new BigDecimal("28.00"), 4L, null)));
+
+        assertEquals(ErrorCode.CATEGORIA_NAO_ENCONTRADA, exception.getErro());
+        verify(produtos, never()).save(any(Produto.class));
+    }
+
     private Categoria categoria(Long id, String nome, int ordem, boolean ativo) {
         Categoria categoria = new Categoria(nome, ordem, ativo);
         ReflectionTestUtils.setField(categoria, "id", id);

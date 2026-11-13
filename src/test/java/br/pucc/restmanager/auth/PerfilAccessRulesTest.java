@@ -66,6 +66,18 @@ class PerfilAccessRulesTest {
     }
 
     @Test
+    void gestaoDeCategoriasESoDoAdministrador() {
+        for (String[] rota : new String[][] {
+                {"GET", "/api/categorias"}, {"POST", "/api/categorias"},
+                {"PUT", "/api/categorias/2"}, {"DELETE", "/api/categorias/2"}}) {
+            assertTrue(rules.perfilPermitido(rota[0], rota[1], Perfil.ADMIN));
+            assertFalse(rules.perfilPermitido(rota[0], rota[1], Perfil.GARCOM));
+            assertFalse(rules.perfilPermitido(rota[0], rota[1], Perfil.CAIXA));
+            assertFalse(rules.perfilPermitido(rota[0], rota[1], Perfil.COZINHA));
+        }
+    }
+
+    @Test
     void metodoEOperacaoPrecisamEstarDeclarados() {
         assertFalse(rules.perfilPermitido("GET", "/api/rota-nao-cadastrada", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/rota-nao-cadastrada", Perfil.ADMIN));
