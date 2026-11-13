@@ -93,6 +93,13 @@ public class Mesa {
         }
     }
 
+    // Volta a mesa para disponível quando não sobra pedido em aberto nela
+    public void liberar() {
+        if (status == StatusMesa.OCUPADA) {
+            status = StatusMesa.DISPONIVEL;
+        }
+    }
+
     public void iniciarPagamento(Usuario operador, LocalDateTime iniciadoEm) {
         status = StatusMesa.EM_PAGAMENTO;
         pagamentoIniciadoPor = operador;

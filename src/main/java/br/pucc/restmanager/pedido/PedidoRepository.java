@@ -5,6 +5,7 @@ import br.pucc.restmanager.pedido.domain.StatusItem;
 import br.pucc.restmanager.pedido.domain.StatusPedido;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
             FROM tb_configuracao WHERE id = 1
             """, nativeQuery = true)
     BigDecimal taxaServicoPercentual();
+
+    boolean existsByMesaIdAndStatusNotIn(Long mesaId, Collection<StatusPedido> status);
 
     @Query("""
             select distinct p from Pedido p

@@ -104,4 +104,21 @@ public class ItemPedido {
         status = novoStatus;
         atualizadoEm = LocalDateTime.now();
     }
+
+    // Só dá para cancelar o que a cozinha ainda não começou a preparar
+    public void cancelar() {
+        if (status != StatusItem.AGUARDANDO) {
+            throw new BusinessException(ErrorCode.CANCELAMENTO_NAO_PERMITIDO);
+        }
+        status = StatusItem.CANCELADO;
+        atualizadoEm = LocalDateTime.now();
+    }
+
+    public boolean isCancelado() {
+        return status == StatusItem.CANCELADO;
+    }
+
+    public BigDecimal getSubtotal() {
+        return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+    }
 }

@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,5 +92,29 @@ public class Pedido {
 
     public List<ItemPedido> getItens() {
         return List.copyOf(itens);
+    }
+
+    public boolean isEmAberto() {
+        return status != StatusPedido.PAGO && status != StatusPedido.CANCELADO;
+    }
+
+    public boolean todosItensCancelados() {
+        return itens.stream().allMatch(ItemPedido::isCancelado);
+    }
+
+    // Soma só os itens não cancelados e aplica a taxa de serviço vigente
+    public void recalcularValorTotal(BigDecimal taxaServicoPercentual) {
+        BigDecimal subtotal = itens.stream()
+                .filter(item -> !item.isCancelado())
+                .map(ItemPedido::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal taxa = subtotal.multiply(taxaServicoPercentual)
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+        valorTotal = subtotal.add(taxa);
+    }
+
+    public void cancelar() {
+        status = StatusPedido.CANCELADO;
     }
 }
