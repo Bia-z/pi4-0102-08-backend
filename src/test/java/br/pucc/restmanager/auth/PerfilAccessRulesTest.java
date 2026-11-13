@@ -46,6 +46,14 @@ class PerfilAccessRulesTest {
     }
 
     @Test
+    void cancelarItemEPermitidoSoParaGarcomEAdmin() {
+        assertTrue(rules.perfilPermitido("POST", "/api/pedidos/42/itens/7/cancelar", Perfil.GARCOM));
+        assertTrue(rules.perfilPermitido("POST", "/api/pedidos/42/itens/7/cancelar", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("POST", "/api/pedidos/42/itens/7/cancelar", Perfil.COZINHA));
+        assertFalse(rules.perfilPermitido("POST", "/api/pedidos/42/itens/7/cancelar", Perfil.CAIXA));
+    }
+
+    @Test
     void metodoEOperacaoPrecisamEstarDeclarados() {
         assertFalse(rules.perfilPermitido("GET", "/api/rota-nao-cadastrada", Perfil.ADMIN));
         assertFalse(rules.perfilPermitido("POST", "/api/rota-nao-cadastrada", Perfil.ADMIN));
