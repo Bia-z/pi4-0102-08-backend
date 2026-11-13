@@ -85,7 +85,9 @@ public class ProdutoService {
     }
 
     private Categoria buscarCategoria(Long categoriaId) {
+        // Categoria desativada não recebe item novo nem item reativado
         return categorias.findById(categoriaId)
+                .filter(Categoria::isAtivo)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORIA_NAO_ENCONTRADA));
     }
 
