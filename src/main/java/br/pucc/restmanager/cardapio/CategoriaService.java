@@ -38,6 +38,7 @@ public class CategoriaService {
             throw new BusinessException(ErrorCode.CATEGORIA_DUPLICADA);
         }
         boolean ativo = request.ativo() == null || request.ativo();
+        abrirEspacoNaOrdem(request.ordem(), null);
         return responder(categorias.save(new Categoria(nome, request.ordem(), ativo)));
     }
 
@@ -47,6 +48,9 @@ public class CategoriaService {
         String nome = request.nome().trim();
         if (categorias.existsByNomeIgnoreCaseAndIdNot(nome, id)) {
             throw new BusinessException(ErrorCode.CATEGORIA_DUPLICADA);
+        }
+        if (categoria.getOrdem() != request.ordem()) {
+            abrirEspacoNaOrdem(request.ordem(), id);
         }
         categoria.atualizar(nome, request.ordem());
         if (Boolean.TRUE.equals(request.ativo())) {
@@ -64,6 +68,27 @@ public class CategoriaService {
         garantirSemItensAtivos(categoria);
         categoria.desativar();
         categorias.save(categoria);
+    }
+
+    /**
+     * Se outra categoria já usa essa ordem, empurra ela e as seguintes uma posição para baixo,
+     * para a categoria nova (ou editada) entrar exatamente naquela posição.
+     * Exemplo: Entradas 1, Pratos 2, Sobremesas 3, Bebidas 4; cadastrar "Porções" na ordem 3
+     * deixa Sobremesas com 4 e Bebidas com 5.
+     */
+    private void abrirEspacoNaOrdem(int ordem, Long idIgnorado) {
+        List<Categoria> outras = categorias.findAllByOrderByOrdemAscNomeAsc().stream()
+                .filter(categoria -> !categoria.getId().equals(idIgnorado))
+                .toList();
+        boolean ocupada = outras.stream().anyMatch(categoria -> categoria.getOrdem() == ordem);
+        if (!ocupada) {
+            return;
+        }
+        List<Categoria> deslocadas = outras.stream()
+                .filter(categoria -> categoria.getOrdem() >= ordem)
+                .toList();
+        deslocadas.forEach(categoria -> categoria.atualizar(categoria.getNome(), categoria.getOrdem() + 1));
+        categorias.saveAll(deslocadas);
     }
 
     private void garantirSemItensAtivos(Categoria categoria) {

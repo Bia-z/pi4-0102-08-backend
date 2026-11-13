@@ -166,6 +166,78 @@ class CategoriaServiceTest {
         assertEquals(ErrorCode.CATEGORIA_COM_ITENS, erro.getErro());
     }
 
+    // ---- Ordem ocupada: as seguintes descem uma posição ----
+
+    private List<Categoria> cardapioPadrao() {
+        return List.of(
+                categoria(1L, "Entradas", 1, true),
+                categoria(2L, "Pratos principais", 2, true),
+                categoria(3L, "Sobremesas", 3, true),
+                categoria(4L, "Bebidas", 4, true));
+    }
+
+    private List<Integer> ordens(List<Categoria> lista) {
+        return lista.stream().map(Categoria::getOrdem).toList();
+    }
+
+    @Test
+    void cadastrarEmOrdemOcupadaEmpurraAsSeguintes() {
+        List<Categoria> atuais = cardapioPadrao();
+        when(categorias.findAllByOrderByOrdemAscNomeAsc()).thenReturn(atuais);
+        when(categorias.existsByNomeIgnoreCase("Porções")).thenReturn(false);
+        salvarDevolvendoComId();
+        when(produtos.countByCategoriaIdAndAtivoTrue(50L)).thenReturn(0L);
+
+        CategoriaResponse nova = service.cadastrar(new CategoriaRequest("Porções", 3, null));
+
+        assertEquals(3, nova.ordem());
+        assertEquals(List.of(1, 2, 4, 5), ordens(atuais), "Sobremesas e Bebidas descem");
+        verify(categorias).saveAll(List.of(atuais.get(2), atuais.get(3)));
+    }
+
+    @Test
+    void cadastrarEmOrdemLivreNaoMexeNasOutras() {
+        List<Categoria> atuais = cardapioPadrao();
+        when(categorias.findAllByOrderByOrdemAscNomeAsc()).thenReturn(atuais);
+        when(categorias.existsByNomeIgnoreCase("Porções")).thenReturn(false);
+        salvarDevolvendoComId();
+        when(produtos.countByCategoriaIdAndAtivoTrue(50L)).thenReturn(0L);
+
+        service.cadastrar(new CategoriaRequest("Porções", 10, null));
+
+        assertEquals(List.of(1, 2, 3, 4), ordens(atuais));
+        verify(categorias, never()).saveAll(any());
+    }
+
+    @Test
+    void editarParaOrdemOcupadaEmpurraAsOutrasMasNaoAPropria() {
+        List<Categoria> atuais = cardapioPadrao();
+        Categoria bebidas = atuais.get(3);
+        when(categorias.findById(4L)).thenReturn(Optional.of(bebidas));
+        when(categorias.existsByNomeIgnoreCaseAndIdNot("Bebidas", 4L)).thenReturn(false);
+        when(categorias.findAllByOrderByOrdemAscNomeAsc()).thenReturn(atuais);
+        salvarDevolvendoComId();
+        when(produtos.countByCategoriaIdAndAtivoTrue(4L)).thenReturn(3L);
+
+        service.atualizar(4L, new CategoriaRequest("Bebidas", 2, null));
+
+        assertEquals(List.of(1, 3, 4, 2), ordens(atuais), "Bebidas vai para 2, Pratos e Sobremesas descem");
+    }
+
+    @Test
+    void editarSemMudarAOrdemNaoDesloca() {
+        Categoria sobremesas = categoria(3L, "Sobremesas", 3, true);
+        when(categorias.findById(3L)).thenReturn(Optional.of(sobremesas));
+        when(categorias.existsByNomeIgnoreCaseAndIdNot("Doces", 3L)).thenReturn(false);
+        salvarDevolvendoComId();
+        when(produtos.countByCategoriaIdAndAtivoTrue(3L)).thenReturn(2L);
+
+        service.atualizar(3L, new CategoriaRequest("Doces", 3, null));
+
+        verify(categorias, never()).findAllByOrderByOrdemAscNomeAsc();
+        verify(categorias, never()).saveAll(any());
+    }
+
     @Test
     void categoriaInexistenteDaErro() {
         when(categorias.findById(99L)).thenReturn(Optional.empty());
