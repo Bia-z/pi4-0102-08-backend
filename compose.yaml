@@ -5,6 +5,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/db/init:/docker-entrypoint-initdb.d
@@ -24,6 +26,9 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      # Horário dos pedidos, comandas e comprovantes no fuso do restaurante
+      TZ: America/Sao_Paulo
+      JAVA_TOOL_OPTIONS: -Duser.timezone=America/Sao_Paulo
     depends_on:
       db:
         condition: service_healthy
