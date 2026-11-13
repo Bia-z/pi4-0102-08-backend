@@ -93,6 +93,22 @@ public class Mesa {
         }
     }
 
+    public void atualizar(int numero, int capacidade) {
+        this.numero = numero;
+        this.capacidade = capacidade;
+    }
+
+    // Exclusão lógica: o histórico de pedidos continua apontando para a mesa
+    public void desativar() {
+        this.ativo = false;
+    }
+
+    public void reativar(int capacidade) {
+        this.ativo = true;
+        this.capacidade = capacidade;
+        this.status = StatusMesa.DISPONIVEL;
+    }
+
     // Volta a mesa para disponível quando não sobra pedido em aberto nela
     public void liberar() {
         if (status == StatusMesa.OCUPADA) {

@@ -12,7 +12,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface MesaRepository extends JpaRepository<Mesa, Long> {
 
-    boolean existsByNumero(int numero);
+    Optional<Mesa> findByNumero(int numero);
+
+    List<Mesa> findByAtivoTrueOrderByNumeroAsc();
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM Mesa m WHERE m.id = :id AND m.ativo = true")
