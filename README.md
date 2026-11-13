@@ -48,7 +48,7 @@ Com Java 17 e Maven instalados, basta `mvn verify`.
 
 | Pasta | Conteúdo |
 | :--- | :--- |
-| `docs/contrato` | Contratos da API, das tabelas e das mensagens em tempo real (CT1 a CT23) |
+| `docs/contrato` | Contratos da API, das tabelas e das mensagens em tempo real (CT1 a CT24) |
 | `docs/banco` | Modelo do banco e convenções |
 | `docs/adr` | Decisões de arquitetura |
 | `docs/testes` | Plano de testes e roteiro de demonstração |
