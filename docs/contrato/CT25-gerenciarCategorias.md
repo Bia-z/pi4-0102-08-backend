@@ -34,9 +34,11 @@ Devolve todas as categorias, ativas e desativadas, por `ordem` e depois por `nom
 
 Responde `201` com a categoria criada. Espaços no começo e no fim do nome são removidos.
 
+**Ordem ocupada:** se outra categoria já usa a ordem informada, ela e todas as seguintes descem uma posição (+1) para a nova entrar exatamente ali. Exemplo: Entradas 1, Pratos 2, Sobremesas 3, Bebidas 4; cadastrar "Porções" na ordem 3 deixa Sobremesas com 4 e Bebidas com 5. Ordem livre não mexe nas outras.
+
 ## PUT `/api/categorias/{id}`: editar
 
-Mesma entrada do cadastro. `ativo: true` reativa uma categoria desativada; `ativo: false` desativa (com a mesma regra do DELETE); sem `ativo`, a situação não muda.
+Mesma entrada do cadastro. Mudar a ordem para uma posição ocupada segue a mesma regra do cadastro (as outras descem, a própria categoria não). `ativo: true` reativa uma categoria desativada; `ativo: false` desativa (com a mesma regra do DELETE); sem `ativo`, a situação não muda.
 
 ## DELETE `/api/categorias/{id}`: desativar
 
