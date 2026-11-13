@@ -48,4 +48,18 @@ public class Categoria {
     public boolean isAtivo() {
         return ativo;
     }
+
+    public void atualizar(String nome, int ordem) {
+        this.nome = nome;
+        this.ordem = ordem;
+    }
+
+    public void ativar() {
+        this.ativo = true;
+    }
+
+    // Categoria desativada some do cardápio; os itens antigos continuam ligados a ela
+    public void desativar() {
+        this.ativo = false;
+    }
 }

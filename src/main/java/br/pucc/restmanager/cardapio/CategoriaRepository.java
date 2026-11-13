@@ -7,4 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
     List<Categoria> findByAtivoTrueOrderByOrdemAscNomeAsc();
+
+    List<Categoria> findAllByOrderByOrdemAscNomeAsc();
+
+    boolean existsByNomeIgnoreCase(String nome);
+
+    boolean existsByNomeIgnoreCaseAndIdNot(String nome, Long id);
 }

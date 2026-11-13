@@ -13,4 +13,6 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     List<Produto> findAllByOrderByNomeAsc();
 
     List<Produto> findByCategoriaIdAndAtivoTrueOrderByNomeAsc(Long categoriaId);
+
+    long countByCategoriaIdAndAtivoTrue(Long categoriaId);
 }
