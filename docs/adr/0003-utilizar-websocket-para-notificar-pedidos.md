@@ -1,6 +1,6 @@
 # ADR 0003 — Utilizar WebSocket para notificar atualizações de pedidos e de status das mesas
 
-**Status:** Proposto (atualizado em 19/10/2026)
+**Status:** Aceito
 
 **Contexto:** O RestManager precisa permitir que os pedidos registrados pelo garçom sejam visualizados pela cozinha sem depender de atualizações manuais da página. Também é necessário comunicar alterações de status dos pedidos, como novo pedido, em preparo e pronto. A comunicação deve ser simples e compatível com o backend Spring Boot e o frontend web (HTML, JavaScript e Bootstrap).
 
