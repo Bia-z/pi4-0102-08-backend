@@ -9,6 +9,7 @@
 # 5. BANCO DE DADOS
 
 # 6. CONTRATOS E DECISÕES
+Responsável: Vitória Aparecida Brigo Mattos
 
 ### 6.1 Contratos
 
@@ -51,6 +52,7 @@
 # 7. TESTES
 
 # 8. PRINCIPAIS TELAS
+Responsável: Vitória Aparecida Brigo Mattos
 
 ### Login (E1)
 
