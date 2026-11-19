@@ -35,3 +35,4 @@ Ambiente: `docker compose up -d --build` com os dados de teste do `02-seed.sql`.
 | Caixa | O admin desliga a taxa de serviço nas configurações | O mapa de mesas e o pagamento passam a calcular o total sem a taxa |
 | Cozinha | A cozinha inicia o preparo de um item com "Imprimir todos os pratos do pedido em uma comanda só" ligado e depois desligado | Ligado, sai uma comanda com todos os pratos do pedido. Desligado, sai uma comanda só com o item aceito. Em ambos aparece o horário e há botão para reimprimir |
 | Caixa | O caixa escolhe uma data na consulta de comanda | São listadas as comandas daquela data, com opção de ver, imprimir e baixar o PDF |
+| Caixa | O caixa clica em "Cancelar" numa comanda paga e informa código e senha de um administrador | O pedido passa para "Cancelado" e deixa de entrar no valor esperado e nos relatórios do caixa. Com senha errada, ou com usuário que não é administrador, o cancelamento é recusado |

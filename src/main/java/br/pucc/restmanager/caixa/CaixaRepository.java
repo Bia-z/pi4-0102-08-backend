@@ -62,6 +62,7 @@ public class CaixaRepository {
                                SELECT SUM(pg.valor - pg.troco)
                                FROM tb_pagamento pg
                                WHERE pg.caixa_id = c.id AND pg.forma_pagamento = 'DINHEIRO'
+                                 AND EXISTS (SELECT 1 FROM tb_pedido pd WHERE pd.id = pg.pedido_id AND pd.status <> 'CANCELADO')
                            ), 0)
                            + COALESCE((
                                SELECT SUM(CASE WHEN mc.tipo = 'REFORCO' THEN mc.valor ELSE -mc.valor END)
@@ -114,6 +115,7 @@ public class CaixaRepository {
                                 WHERE mc.caixa_id = ? AND mc.tipo = 'REFORCO') AS reforcos
                         FROM tb_pagamento pg
                         WHERE pg.caixa_id = ?
+                          AND EXISTS (SELECT 1 FROM tb_pedido pd WHERE pd.id = pg.pedido_id AND pd.status <> 'CANCELADO')
                         """,
                 (rs, row) -> new ResumoTurnoResponse(caixa,
                         rs.getBigDecimal("recebido"), rs.getBigDecimal("dinheiro"),
@@ -180,6 +182,7 @@ public class CaixaRepository {
                                COUNT(pg.id) AS quantidade
                         FROM tb_pagamento pg
                         WHERE pg.data_pagamento >= ? AND pg.data_pagamento < ?
+                          AND EXISTS (SELECT 1 FROM tb_pedido pd WHERE pd.id = pg.pedido_id AND pd.status <> 'CANCELADO')
                         """,
                 (rs, row) -> new RelatorioValores(
                         rs.getBigDecimal("recebido"), rs.getBigDecimal("dinheiro"),
