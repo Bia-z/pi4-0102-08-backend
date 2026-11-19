@@ -8,6 +8,7 @@ public record ComandaResumoResponse(
         int numeroMesa,
         String nomeGarcom,
         LocalDateTime criadaEm,
+        String statusPedido,
         List<Item> itens) {
 
     public ComandaResumoResponse {
@@ -16,7 +17,7 @@ public record ComandaResumoResponse(
 
     public ComandaResumoResponse somenteItem(Long itemId) {
         return new ComandaResumoResponse(pedidoId, numeroMesa, nomeGarcom, criadaEm,
-                itens.stream().filter(item -> item.itemId().equals(itemId)).toList());
+                statusPedido, itens.stream().filter(item -> item.itemId().equals(itemId)).toList());
     }
 
     public record Item(

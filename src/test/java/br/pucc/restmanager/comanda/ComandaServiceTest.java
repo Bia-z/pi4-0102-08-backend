@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import br.pucc.restmanager.comanda.dto.ComandaService;
 import br.pucc.restmanager.mesa.domain.Mesa;
 import br.pucc.restmanager.pedido.PedidoRepository;
 import br.pucc.restmanager.pedido.domain.Pedido;

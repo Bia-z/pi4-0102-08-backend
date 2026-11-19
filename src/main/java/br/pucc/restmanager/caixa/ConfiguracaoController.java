@@ -2,7 +2,6 @@ package br.pucc.restmanager.caixa;
 
 import br.pucc.restmanager.caixa.dto.ConfiguracaoRequest;
 import br.pucc.restmanager.caixa.dto.ConfiguracaoResponse;
-import br.pucc.restmanager.caixa.dto.ConfiguracaoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;

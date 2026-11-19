@@ -4,7 +4,6 @@ import br.pucc.restmanager.comanda.dto.ComandaResumoResponse;
 import java.time.LocalDate;
 import java.util.List;
 
-import br.pucc.restmanager.comanda.dto.ComandaService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

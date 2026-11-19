@@ -8,5 +8,7 @@ public record ConfiguracaoRequest(
         Boolean taxaServicoAtiva,
         Boolean imprimirComandaAoAceitar,
         Boolean comandaUnica,
-        Boolean imprimirComprovanteAoFechar) {
+        Boolean imprimirComprovanteAoFechar,
+        String codigoUsuario,
+        String senha) {
 }

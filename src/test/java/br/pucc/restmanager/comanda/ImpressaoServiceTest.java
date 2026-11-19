@@ -14,7 +14,6 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import br.pucc.restmanager.comanda.dto.ComandaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
