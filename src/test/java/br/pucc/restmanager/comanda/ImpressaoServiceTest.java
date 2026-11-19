@@ -13,6 +13,8 @@ import br.pucc.restmanager.comanda.dto.ComandaResumoResponse;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import br.pucc.restmanager.comanda.dto.ComandaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -99,7 +101,7 @@ class ImpressaoServiceTest {
 
     private ComandaResumoResponse comanda(String statusSuco, String statusBolo) {
         return new ComandaResumoResponse(
-                7L, 12, "Garcom", LocalDateTime.of(2026, 11, 8, 12, 30),
+                7L, 12, "Garcom", LocalDateTime.of(2026, 11, 8, 12, 30), "aguardando",
                 List.of(new ComandaResumoResponse.Item(1L, "Suco", 2, "Sem gelo", statusSuco),
                         new ComandaResumoResponse.Item(2L, "Bolo", 1, null, statusBolo)));
     }

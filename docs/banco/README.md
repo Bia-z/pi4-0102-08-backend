@@ -226,7 +226,7 @@ erDiagram
 - `POST /api/caixa/abrir`, `GET /api/caixa/aberto` e `POST /api/caixa/fechar` controlam o turno. O fechamento compara o dinheiro contado com a abertura, pagamentos em dinheiro líquidos de troco e movimentações.
 - `POST /api/caixa/movimentacoes` registra sangria ou reforço; `GET /api/caixa/historico` lista fechamentos.
 - `GET /api/caixa/relatorios/{AAAA-MM-DD}` retorna os totais por forma de pagamento e movimentações do dia; o sufixo `/pdf` gera o arquivo PDF.
-- `GET /api/caixa/configuracao` consulta as opções e `PUT` atualiza nome, taxa de serviço (0 a 100%) e impressão automática.
-- `GET /api/pedidos/{pedidoId}/comanda` retorna os itens imprimíveis e `/pdf` gera a comanda. Quando a impressão automática está habilitada, a cozinha recebe a comanda em `/topic/comandas` ao iniciar o preparo.
+- `GET /api/caixa/configuracao` consulta as opções e `PUT` atualiza nome, taxa de serviço (0 a 100%) e impressão automática; a alteração exige `codigoUsuario` e `senha` de um usuário ativo CAIXA ou ADMIN.
+- `GET /api/pedidos/{pedidoId}/comanda` retorna os itens imprimíveis e `statusPedido` (`pago`, `cancelado` ou o andamento do pedido), usado para avisar na consulta se o pedido já foi pago; `/pdf` gera a comanda. `GET /api/comandas?data=` lista as comandas do dia com o mesmo campo. Quando a impressão automática está habilitada, a cozinha recebe a comanda em `/topic/comandas` ao iniciar o preparo.
 
 O schema ainda não mantém histórico de impressões/reimpressões da comanda; o endpoint gera a comanda a partir do pedido existente. Os turnos aceitos pelo backend são `MANHA`, `TARDE` e `NOITE`.

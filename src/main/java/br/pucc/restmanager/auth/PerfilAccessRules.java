@@ -55,7 +55,7 @@ public class PerfilAccessRules implements AuthorizationManager<RequestAuthorizat
             operation("GET", "/api/caixa/relatorios/*", Perfil.ADMIN, Perfil.CAIXA),
             operation("GET", "/api/caixa/relatorios/*/pdf", Perfil.ADMIN, Perfil.CAIXA),
             operation("GET", "/api/caixa/configuracao", Perfil.ADMIN, Perfil.CAIXA),
-            operation("PUT", "/api/caixa/configuracao", Perfil.ADMIN),
+            operation("PUT", "/api/caixa/configuracao", Perfil.ADMIN, Perfil.CAIXA),
             operation("GET", "/api/caixa/*/resumo", Perfil.ADMIN, Perfil.CAIXA),
             operation("GET", "/api/comandas",
                     Perfil.ADMIN, Perfil.GARCOM, Perfil.COZINHA, Perfil.CAIXA),

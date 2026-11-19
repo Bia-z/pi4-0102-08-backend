@@ -1,13 +1,15 @@
 package br.pucc.restmanager.comanda;
 
 import br.pucc.restmanager.comanda.dto.ComandaResumoResponse;
-import br.pucc.restmanager.caixa.ConfiguracaoService;
+import br.pucc.restmanager.caixa.dto.ConfiguracaoService;
 import br.pucc.restmanager.caixa.dto.ConfiguracaoResponse;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import br.pucc.restmanager.comanda.dto.ComandaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

@@ -131,12 +131,15 @@ class PerfilAccessRulesTest {
     }
 
     @Test
-    void caixaPodeOperarTurnoEConsultarRelatorios() {
+    void caixaPodeOperarTurnoConsultarRelatoriosEAlterarConfiguracao() {
         assertTrue(rules.perfilPermitido("POST", "/api/caixa/abrir", Perfil.CAIXA));
         assertTrue(rules.perfilPermitido("POST", "/api/caixa/fechar", Perfil.CAIXA));
         assertTrue(rules.perfilPermitido("GET", "/api/caixa/relatorios/2026-11-08/pdf", Perfil.CAIXA));
         assertTrue(rules.perfilPermitido("GET", "/api/caixa/configuracao", Perfil.CAIXA));
-        assertFalse(rules.perfilPermitido("PUT", "/api/caixa/configuracao", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("PUT", "/api/caixa/configuracao", Perfil.CAIXA));
+        assertTrue(rules.perfilPermitido("PUT", "/api/caixa/configuracao", Perfil.ADMIN));
+        assertFalse(rules.perfilPermitido("PUT", "/api/caixa/configuracao", Perfil.GARCOM));
+        assertFalse(rules.perfilPermitido("PUT", "/api/caixa/configuracao", Perfil.COZINHA));
     }
 
     @Test

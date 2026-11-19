@@ -40,6 +40,7 @@ public class ComandaService {
                 pedido.getMesa().getNumero(),
                 pedido.getGarcom().getNome(),
                 pedido.getDataCriacao(),
+                pedido.getStatus().name().toLowerCase(Locale.ROOT),
                 pedido.getItens().stream()
                         .map(item -> new ComandaResumoResponse.Item(
                                 item.getId(),
