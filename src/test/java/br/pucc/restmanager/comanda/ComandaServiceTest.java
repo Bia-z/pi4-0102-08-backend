@@ -26,7 +26,8 @@ class ComandaServiceTest {
 
     @Test
     void comandaInformaQueOPedidoJaFoiPago() {
-        when(pedidos.findById(7L)).thenReturn(Optional.of(pedido(7L, StatusPedido.PAGO)));
+        Pedido pago = pedido(7L, StatusPedido.PAGO);
+        when(pedidos.findById(7L)).thenReturn(Optional.of(pago));
 
         var comanda = new ComandaService(pedidos).obter(7L);
 
@@ -37,7 +38,8 @@ class ComandaServiceTest {
 
     @Test
     void comandaInformaQueOPedidoAindaNaoFoiPago() {
-        when(pedidos.findById(8L)).thenReturn(Optional.of(pedido(8L, StatusPedido.EM_PREPARO)));
+        Pedido emPreparo = pedido(8L, StatusPedido.EM_PREPARO);
+        when(pedidos.findById(8L)).thenReturn(Optional.of(emPreparo));
 
         assertEquals("em_preparo", new ComandaService(pedidos).obter(8L).statusPedido());
     }
@@ -45,11 +47,12 @@ class ComandaServiceTest {
     @Test
     void listaDoDiaTrazOStatusDeCadaPedido() {
         LocalDate dia = LocalDate.of(2026, 11, 8);
+        List<Pedido> doDia = List.of(
+                pedido(1L, StatusPedido.PAGO),
+                pedido(2L, StatusPedido.PRONTO),
+                pedido(3L, StatusPedido.CANCELADO));
         when(pedidos.buscarCriadosEntre(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay()))
-                .thenReturn(List.of(
-                        pedido(1L, StatusPedido.PAGO),
-                        pedido(2L, StatusPedido.PRONTO),
-                        pedido(3L, StatusPedido.CANCELADO)));
+                .thenReturn(doDia);
 
         var comandas = new ComandaService(pedidos).listar(dia);
 
