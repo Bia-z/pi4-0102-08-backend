@@ -106,30 +106,6 @@ Responsável: Vitória Aparecida Brigo Mattos
 
 # 7. TESTES
 
-### 7.1 Bugs encontrados e corrigidos durante o desenvolvimento
-
-Durante os testes manuais do caixa, da cozinha e da comanda apareceram os problemas
-abaixo. Todos foram corrigidos na branch `beatriz` e entraram na `main` no merge final.
-
-| # | Problema encontrado | Área | Correção |
-| :-: | :--- | :--- | :--- |
-| 1 | Ao logar com o caixa, o turno abria sozinho com o resumo das vendas do dia anterior | Caixa | A abertura de turno passou a ser uma ação explícita; o resumo do dia anterior não abre mais o turno (`0d77154`) |
-| 2 | Qualquer caixa alterava as configurações do restaurante sem confirmação | Caixa | A alteração exige a senha do usuário logado (autorização por senha) |
-| 3 | O turno fechava sem pedir senha | Caixa | O fechamento exige código e senha de caixa ou administrador (`02454bf`) |
-| 4 | O turno podia ser fechado com mesa em aberto | Caixa | O fechamento é recusado com o erro `MESAS_EM_ABERTO` enquanto houver mesa aberta |
-| 5 | A consulta de comanda não dizia se o pedido estava pago | Comanda | A comanda mostra o aviso "Este pedido já foi pago" ou "ainda não foi pago" |
-| 6 | A consulta de comanda não filtrava por data | Comanda | Filtro por data, com o dia atual como padrão |
-| 7 | Não havia como cancelar um pedido já fechado | Comanda | Botão de cancelar nas ações, com login e senha de administrador (CT26, `cfde67a`) |
-| 8 | A comanda da cozinha era impressa sem o usuário pedir | Cozinha | A impressão só acontece ao clicar em imprimir comanda |
-| 9 | A comanda da cozinha saía sem horário | Cozinha | O horário do pedido passou a constar na comanda impressa |
-| 10 | Não havia botão para reimprimir a comanda | Cozinha | Botão "Reimprimir comanda" |
-| 11 | Não havia opção de imprimir todos os pratos em uma comanda só | Cozinha | Configuração `comandaUnica` |
-| 12 | A tela de configurações não mostrava a taxa de serviço nem a impressão automática | Caixa | A tela mostra e edita taxa de serviço (ativa/inativa e percentual) e se a comanda é impressa ao fechar a conta |
-| 13 | Ao voltar pela seta, o mapa de mesas do caixa mostrava o status antigo da mesa | Caixa | O status da mesa é publicado por WebSocket quando o pedido a deixa ocupada (`2331214`) e o mapa recarrega ao voltar pela seta (frontend, `e791b3a`) |
-| 14 | O fechamento de turno não gerava comanda nem podia ser reimpresso | Caixa | Comanda de fechamento com total recebido no dia e por forma de pagamento, reimprimível pelo histórico de turnos |
-| 15 | Sangria e reforço não tinham comanda impressa | Caixa | Comanda com valor, horário, tipo e motivo (E10) |
-
-
 # 8. PRINCIPAIS TELAS
 Responsável: Vitória Aparecida Brigo Mattos
 
