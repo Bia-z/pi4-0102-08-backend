@@ -18,12 +18,14 @@ import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
 import br.pucc.restmanager.pedido.dto.StatusItemResponse;
 import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
+import br.pucc.restmanager.realtime.StatusMesaPublisher;
 import br.pucc.restmanager.realtime.StatusPedidoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Usuario;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -43,6 +45,7 @@ public class PedidoService {
     private final PedidoCriadoPublisher pedidoCriadoPublisher;
     private final StatusPedidoPublisher statusPedidoPublisher;
     private final ImpressaoService impressao;
+    private final StatusMesaPublisher statusMesaPublisher;
 
     public PedidoService(
             MesaRepository mesas,
@@ -52,7 +55,8 @@ public class PedidoService {
             ItemPedidoRepository itens,
             PedidoCriadoPublisher pedidoCriadoPublisher,
             StatusPedidoPublisher statusPedidoPublisher,
-            ImpressaoService impressao) {
+            ImpressaoService impressao,
+            StatusMesaPublisher statusMesaPublisher) {
         this.mesas = mesas;
         this.produtos = produtos;
         this.usuarios = usuarios;
@@ -61,6 +65,7 @@ public class PedidoService {
         this.pedidoCriadoPublisher = pedidoCriadoPublisher;
         this.statusPedidoPublisher = statusPedidoPublisher;
         this.impressao = impressao;
+        this.statusMesaPublisher = statusMesaPublisher;
     }
 
     @Transactional
@@ -94,10 +99,29 @@ public class PedidoService {
                 item.request().quantidade(),
                 item.request().observacao())));
 
+        StatusMesa statusAnterior = mesa.getStatus();
         mesa.ocupar();
         Pedido salvo = pedidos.save(pedido);
         pedidoCriadoPublisher.publicar(salvo);
+        if (statusAnterior != mesa.getStatus()) {
+            publicarStatusMesa(mesa);
+        }
         return PedidoResponse.from(salvo);
+    }
+
+    private void publicarStatusMesa(Mesa mesa) {
+        Runnable publicar = () -> statusMesaPublisher.publicarStatusAtualizado(
+                mesa.getId(), mesa.getNumero(), mesa.getStatus().name().toLowerCase(Locale.ROOT));
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publicar.run();
+                }
+            });
+        } else {
+            publicar.run();
+        }
     }
 
     @Transactional(readOnly = true)

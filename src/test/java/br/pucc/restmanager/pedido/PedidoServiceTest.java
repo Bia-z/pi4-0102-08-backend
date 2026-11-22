@@ -3,6 +3,7 @@ package br.pucc.restmanager.pedido;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import br.pucc.restmanager.pedido.dto.ItemPedidoRequest;
 import br.pucc.restmanager.pedido.dto.PedidoListResponse;
 import br.pucc.restmanager.pedido.dto.PedidoResponse;
 import br.pucc.restmanager.realtime.PedidoCriadoPublisher;
+import br.pucc.restmanager.realtime.StatusMesaPublisher;
 import br.pucc.restmanager.realtime.StatusPedidoPublisher;
 import br.pucc.restmanager.usuario.UsuarioRepository;
 import br.pucc.restmanager.usuario.domain.Perfil;
@@ -67,6 +69,9 @@ class PedidoServiceTest {
     @Mock
     ImpressaoService impressao;
 
+    @Mock
+    StatusMesaPublisher statusMesaPublisher;
+
     private PedidoService service;
     private Mesa mesa;
     private Produto produto;
@@ -76,7 +81,7 @@ class PedidoServiceTest {
     void montar() {
         service = new PedidoService(
                 mesas, produtos, usuarios, pedidos, itens, pedidoCriadoPublisher, statusPedidoPublisher,
-                impressao);
+                impressao, statusMesaPublisher);
         mesa = new Mesa(10, 4);
         ReflectionTestUtils.setField(mesa, "id", 5L);
         produto = new Produto(
@@ -119,6 +124,7 @@ class PedidoServiceTest {
         assertEquals(new BigDecimal("20.00"), item.getPrecoUnitario());
         assertEquals(StatusMesa.OCUPADA, mesa.getStatus());
         verify(pedidoCriadoPublisher).publicar(salvo);
+        verify(statusMesaPublisher).publicarStatusAtualizado(5L, 10, "ocupada");
     }
 
     @Test
@@ -129,6 +135,7 @@ class PedidoServiceTest {
         service.criarPedido(request(1, "Sem sal"));
 
         assertEquals(StatusMesa.OCUPADA, mesa.getStatus());
+        verify(statusMesaPublisher).publicarStatusAtualizado(5L, 10, "ocupada");
     }
 
     @Test
@@ -143,6 +150,7 @@ class PedidoServiceTest {
         assertEquals(5L, captor.getValue().getMesa().getId());
         assertEquals(5L, response.mesaId());
         assertEquals(StatusMesa.OCUPADA, mesa.getStatus());
+        verify(statusMesaPublisher, never()).publicarStatusAtualizado(any(), anyInt(), any());
     }
 
     @Test
